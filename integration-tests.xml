@@ -66,24 +66,29 @@
     <run-script script="${home}/bin/shield/esusers">
       <nested>
         <arg value="useradd"/>
-        <arg value="test_user"/>
+        <arg value="admin_user"/>
         <arg value="-p"/>
         <arg value="changeme"/>
         <arg value="-r"/>
-        <arg value="user"/>
+        <arg value="admin"/>
       </nested>
     </run-script>
 
     <startup-elasticsearch>
       <additional-args>
-        <arg value="-Des.shield.authc.realms.custom.order=0"/>
-        <arg value="-Des.shield.authc.realms.custom.type=custom"/>
-        <arg value="-Des.shield.authc.realms.custom.users.user1.password=changeme"/>
-        <arg value="-Des.shield.authc.realms.custom.users.user1.roles=admin"/>
-        <arg value="-Des.shield.authc.realms.custom.users.user2.password=changeme"/>
-        <arg value="-Des.shield.authc.realms.custom.users.user2.roles=admin"/>
-        <arg value="-Des.shield.authc.realms.custom.users.user3.password=changeme"/>
-        <arg value="-Des.shield.authc.realms.custom.users.user3.roles=admin"/>
+        <arg value="-Des.shield.authc.realms.oauth.order=0"/>
+        <arg value="-Des.shield.authc.realms.oauth.type=oauth"/>
+        <arg value="-Des.shield.authc.realms.oauth.param=zero"/>
+        <arg value="-Des.shield.authc.realms.oauth.param.nested1=one"/>
+        <arg value="-Des.shield.authc.realms.oauth.param.nested2=two"/>
+        <!--<arg value="-Des.shield.authc.realms.custom.order=0"/>-->
+        <!--<arg value="-Des.shield.authc.realms.custom.type=custom"/>-->
+        <!--<arg value="-Des.shield.authc.realms.custom.users.user1.password=changeme"/>-->
+        <!--<arg value="-Des.shield.authc.realms.custom.users.user1.roles=admin"/>-->
+        <!--<arg value="-Des.shield.authc.realms.custom.users.user2.password=changeme"/>-->
+        <!--<arg value="-Des.shield.authc.realms.custom.users.user2.roles=admin"/>-->
+        <!--<arg value="-Des.shield.authc.realms.custom.users.user3.password=changeme"/>-->
+        <!--<arg value="-Des.shield.authc.realms.custom.users.user3.roles=admin"/>-->
         <arg value="-Des.shield.authc.realms.esusers.order=1"/>
         <arg value="-Des.shield.authc.realms.esusers.type=esusers"/>
       </additional-args>
@@ -93,6 +98,6 @@
     <local name="temp.file"/>
     <tempfile property="temp.file" destdir="${java.io.tmpdir}"/>
     <get src="http://127.0.0.1:${integ.http.port}" dest="${temp.file}"
-         username="test_user" password="changeme" verbose="true" retries="10"/>
+         username="admin_user" password="changeme" verbose="true" retries="10"/>
   </target>
 </project>

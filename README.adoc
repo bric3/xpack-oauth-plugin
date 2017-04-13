@@ -1,0 +1,41 @@
+= OAuth Shield Plugin for ElasticSearch 2.4
+
+== Run it simple
+
+Run ES with this plugin installed.
+... then run integration tests
+
+[source,sh]
+----
+mvn -Dskip.integ.tests=false -DskipTests pre-integration-test
+----
+
+Default user is `admin-user` with password : `changeme` (see ant file `integration-tests.xml`).
+To connect to the instance :
+
+[source,sh]
+----
+curl -v --user admin_user:changeme -XGET 'localhost:9400/_cluster/settings' | jq '.'
+----
+
+== Debug the plugin
+
+These steps indicate how to install a debug agent on the ES instance started by ant.
+It uses the variable `tests.jvm.argline` defined in the parent _ant_ script
+(see `target/dev-tools/ant/integration-tests.xml` at line 169), this variable is only set
+in the `debug` profile declared in this `pom.xml`.
+
+
+1. In your IDE -- IntelliJ IDEA, let's be serous there -- create a remote debug
+   configuration in listen mode, on port 5005
+
+2. Start the debug configuration in your IDE
+
+3. Start Elasticsearch _ant_ task via maven (with the `debug` profile to set `tests.jvm.argline`) :
+
+       mvn -Pdebug -Dskip.integ.tests=false -DskipTests pre-integration-test
+
+4. Then debug, for example with breakpoint here
+    `com.arkey.elasticsearch.plugin.OAuthRealmPlugin.onModule(org.elasticsearch.shield.authc.AuthenticationModule)`
+    that is only executed at the ES startup
+

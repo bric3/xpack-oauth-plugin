@@ -9,21 +9,61 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>shield-custom-realm-example</artifactId>
-    <name>Shield: Shield Custom Realm Example</name>
-    <description>A basic example custom realm with tests to ensure the functionality works in Shield</description>
+    <artifactId>shield-oauth-realm</artifactId>
+    <name>Shield: Shield OAuth Realm</name>
+    <description>OAuth realm for Shield</description>
+
+    <prerequisites>
+        <maven>3.1.0</maven>
+    </prerequisites>
 
     <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.min-version>3.3.9</maven.min-version>
+        <maven.surefire.arguments/>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <inceptionYear>2017</inceptionYear>
+
         <!-- define the plugin classname so it can be put in the descriptor -->
-        <elasticsearch.plugin.classname>org.elasticsearch.example.CustomRealmExamplePlugin</elasticsearch.plugin.classname>
+        <elasticsearch.plugin.classname>com.arkey.elasticsearch.plugin.OAuthRealmPlugin</elasticsearch.plugin.classname>
         <!-- this plugin cannot be isolated since it needs to directly interact with Shield -->
         <elasticsearch.plugin.isolated>false</elasticsearch.plugin.isolated>
 
         <!-- define the location and information for the integration tests run as part of the verify phase -->
         <elasticsearch.integ.antfile>${project.basedir}/integration-tests.xml</elasticsearch.integ.antfile>
-        <plugins.list>license,shield,shield-custom-realm-example</plugins.list>
+        <plugins.list>license,shield,shield-oauth-realm</plugins.list>
         <xlint.options>-Xlint:-rawtypes</xlint.options>
+
+        <!-- From org.elasticsearch:parent:2.4.4 -->
+        <integ.scratch>${project.build.directory}/integ_tests</integ.scratch>
+        <integ.deps>${project.build.directory}/integ_deps</integ.deps>
+        <integ.temp>${integ.scratch}/temp</integ.temp>
+        <integ.http.port>9400</integ.http.port>
+        <integ.transport.port>9500</integ.transport.port>
+        <integ.http.port.sec>9600</integ.http.port.sec>
+        <integ.transport.port.sec>9700</integ.transport.port.sec>
+
+        <!-- debug agent for ES run by ant -->
+        <!--<tests.jvm.argline>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</tests.jvm.argline>-->
     </properties>
+
+    <profiles>
+        <profile>
+            <id>debug</id>
+            <properties>
+                <!--
+                Install debug agent on the ES instance started by ant (see target/dev-tools/ant/integration-tests.xml:169)
+                1. Create a remote debug configuration in listen mode, on port 5005
+                2. Start the debug config
+                3. Start ES ant task via maven with the debug profile : mvn -Pdebug -Dskip.integ.tests=false -DskipTests pre-integration-test
+                4. Debug
+                -->
+                <tests.jvm.argline>-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y,onuncaught=n</tests.jvm.argline>
+            </properties>
+        </profile>
+    </profiles>
 
     <repositories>
         <repository>
@@ -63,6 +103,41 @@
     </repositories>
 
     <dependencies>
+        <!--<dependency>-->
+            <!--<groupId>org.elasticsearch.client</groupId>-->
+            <!--<artifactId>rest</artifactId>-->
+            <!--<version>5.3.0</version>-->
+        <!--</dependency>-->
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>retrofit</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.6.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>2.4.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.6.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
+
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
@@ -139,15 +214,54 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Don't run the license checker in this custom plugin-->
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
-                        <!-- Don't run the license checker in the custom realm example -->
+                        <!-- Don't run the license checker in this custom plugin-->
                         <id>check-license</id>
                         <phase>none</phase>
                     </execution>
+
+                    <!-- start up external cluster -->
+                    <execution>
+                        <id>integ-setup</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skip.integ.tests}</skip>
+                            <target>
+                                <ant antfile="integration-tests.xml" target="start-external-cluster-with-plugin"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <!-- shut down external cluster -->
+                    <execution>
+                        <id>integ-teardown</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skip.integ.tests}</skip>
+                            <target>
+                                <ant antfile="integration-tests.xml" target="stop-external-cluster"/>
+                            </target>
+                        </configuration>
+                    </execution>
+
                 </executions>
                 <dependencies>
                     <dependency>
@@ -168,6 +282,42 @@
                     </dependency>
                 </dependencies>
             </plugin>
+
+            <!-- Override restrictions on Java 7 to support Java 8 -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>animal-sniffer-maven-plugin</artifactId>
+                <version>1.15</version>
+                <configuration>
+                    <signature>
+                        <groupId>org.codehaus.mojo.signature</groupId>
+                        <artifactId>java18</artifactId>
+                        <version>1.0</version>
+                    </signature>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>check-java18</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Relax forbidden API for tests -->
+            <plugin>
+                <groupId>de.thetaphi</groupId>
+                <artifactId>forbiddenapis</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <id>check-forbidden-test-apis</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 </project>
