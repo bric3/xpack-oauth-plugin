@@ -1,4 +1,4 @@
-package com.arkey.elasticsearch.plugin;
+package fr.arkey.elasticsearch.oauth.realm;
 
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.rest.RestModule;

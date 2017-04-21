@@ -74,21 +74,23 @@
       </nested>
     </run-script>
 
+    <copy file="${project.build.testOutputDirectory}/oauth_role_mapping.yml" todir="${home}/config/shield/" />
+
     <startup-elasticsearch>
       <additional-args>
         <arg value="-Des.shield.authc.realms.oauth.order=0"/>
         <arg value="-Des.shield.authc.realms.oauth.type=oauth"/>
-        <arg value="-Des.shield.authc.realms.oauth.param=zero"/>
-        <arg value="-Des.shield.authc.realms.oauth.param.nested1=one"/>
-        <arg value="-Des.shield.authc.realms.oauth.param.nested2=two"/>
-        <!--<arg value="-Des.shield.authc.realms.custom.order=0"/>-->
-        <!--<arg value="-Des.shield.authc.realms.custom.type=custom"/>-->
-        <!--<arg value="-Des.shield.authc.realms.custom.users.user1.password=changeme"/>-->
-        <!--<arg value="-Des.shield.authc.realms.custom.users.user1.roles=admin"/>-->
-        <!--<arg value="-Des.shield.authc.realms.custom.users.user2.password=changeme"/>-->
-        <!--<arg value="-Des.shield.authc.realms.custom.users.user2.roles=admin"/>-->
-        <!--<arg value="-Des.shield.authc.realms.custom.users.user3.password=changeme"/>-->
-        <!--<arg value="-Des.shield.authc.realms.custom.users.user3.roles=admin"/>-->
+        <arg value="-Des.shield.authc.realms.oauth.files.role_mapping=config/shield/oauth_role_mapping.yml"/>
+        <arg value="-Des.shield.authc.realms.oauth.token-info-url=https://idp.lab.company.io/nidp/oauth/nam/tokeninfo"/>
+        <arg value="-Des.shield.authc.realms.oauth.idp.connection-timeout-in-millis=10000"/>
+        <arg value="-Des.shield.authc.realms.oauth.idp.read-timeout-in-millis=10000"/>
+        <arg value="-Des.shield.authc.realms.oauth.idp.write-timeout-in-millis=10000"/>
+        <arg value="-Des.shield.authc.realms.oauth.token-info.user.field=user_id"/>
+        <arg value="-Des.shield.authc.realms.oauth.token-info.scope.field=scope"/>
+        <arg value="-Des.shield.authc.realms.oauth.token-info.expires-in.field=expires_in"/>
+        <arg value="-Des.shield.authc.realms.oauth.token-info.expires-in.field.unit=SECONDS"/>
+        <arg value="-Des.shield.audit.enabled=true"/>
+        <arg value="-Dlogger.shield.audit.logfile.level=INFO"/>
         <arg value="-Des.shield.authc.realms.esusers.order=1"/>
         <arg value="-Des.shield.authc.realms.esusers.type=esusers"/>
       </additional-args>

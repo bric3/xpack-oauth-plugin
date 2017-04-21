@@ -1,26 +1,33 @@
-package com.arkey.elasticsearch.plugin;
+package fr.arkey.elasticsearch.oauth.realm;
 
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.shield.ShieldSettingsFilter;
 import org.elasticsearch.shield.authc.Realm;
 import org.elasticsearch.shield.authc.RealmConfig;
+import org.elasticsearch.shield.ssl.ClientSSLService;
+import org.elasticsearch.watcher.ResourceWatcherService;
 
 /**
  * The factory class for the {@link OAuthRealm}. This factory class is responsible for properly constructing the realm
  * when called by the Shield framework.
  */
 public class OAuthReamFactory extends Realm.Factory<OAuthRealm> {
-
     /*
      * The {@link ShieldSettingsFilter} is filter that allows for the settings shown in the elasticsearch REST APIs to be
      * filtered. This is useful when there is sensitive information that should not be retrieved via HTTP requests
      */
     private final ShieldSettingsFilter settingsFilter;
+    private ResourceWatcherService watcherService;
+    private ClientSSLService clientSSLService;
 
     @Inject
-    public OAuthReamFactory(ShieldSettingsFilter settingsFilter) {
+    public OAuthReamFactory(ShieldSettingsFilter settingsFilter,
+                            ResourceWatcherService watcherService,
+                            ClientSSLService clientSSLService) {
         super(OAuthRealm.TYPE, false);
         this.settingsFilter = settingsFilter;
+        this.watcherService = watcherService;
+        this.clientSSLService = clientSSLService;
     }
 
     /**
@@ -32,7 +39,9 @@ public class OAuthReamFactory extends Realm.Factory<OAuthRealm> {
     public OAuthRealm create(RealmConfig realmConfig) {
         // filter out all of the user information for the realm that is being created
         settingsFilter.filterOut("shield.authc.realms." + realmConfig.name() + ".*");
-        return new OAuthRealm(realmConfig);
+        return new OAuthRealm(realmConfig,
+                              watcherService,
+                              clientSSLService);
     }
 
     /**

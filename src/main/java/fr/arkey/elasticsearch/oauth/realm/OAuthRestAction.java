@@ -1,4 +1,4 @@
-package com.arkey.elasticsearch.plugin;
+package fr.arkey.elasticsearch.oauth.realm;
 
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.inject.Inject;
@@ -14,7 +14,8 @@ import org.elasticsearch.rest.RestStatus;
 
 public class OAuthRestAction extends BaseRestHandler {
     @Inject
-    public OAuthRestAction(Settings settings, Client client,
+    public OAuthRestAction(Settings settings,
+                           Client client,
                            RestController controller) {
         super(settings, controller, client);
         controller.registerHandler(RestRequest.Method.GET, "/_oauth/state", this);
@@ -22,7 +23,8 @@ public class OAuthRestAction extends BaseRestHandler {
     }
 
     @Override
-    protected void handleRequest(RestRequest request, RestChannel channel,
+    protected void handleRequest(RestRequest request,
+                                 RestChannel channel,
                                  Client client) throws Exception {
         XContentBuilder builder = JsonXContent.contentBuilder();
         builder.startObject()

@@ -36,6 +36,18 @@ in the `debug` profile declared in this `pom.xml`.
        mvn -Pdebug -Dskip.integ.tests=false -DskipTests pre-integration-test
 
 4. Then debug, for example with breakpoint here
-    `com.arkey.elasticsearch.plugin.OAuthRealmPlugin.onModule(org.elasticsearch.shield.authc.AuthenticationModule)`
+    `OAuthRealmPlugin.onModule(org.elasticsearch.shield.authc.AuthenticationModule)`
     that is only executed at the ES startup
 
+
+== TODO
+
+- [ ] Cache tokens
+- [x] Reload mapping
+- [x] Investigate `RefreshListener`
+- [ ] Dependency Injection
+- [ ] Automate testing
+- [ ] Logging
+- [x] Configurable token info field to lookup
+- [ ] truststore, company internal certificate authority
+- [ ] ES 2.3

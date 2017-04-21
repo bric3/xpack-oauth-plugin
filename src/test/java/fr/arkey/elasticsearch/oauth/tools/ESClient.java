@@ -1,7 +1,7 @@
-package com.arkey.elasticsearch.plugin;
+package fr.arkey.elasticsearch.oauth.tools;
 
 import java.io.IOException;
-import java.util.Base64;
+import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -10,18 +10,18 @@ import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
-import static java.lang.String.format;
-
 public class ESClient implements MethodRule {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BASIC_PREFIX = "Basic ";
     private final String password;
     private final String user;
-    private String url;
-    private OkHttpClient client = new OkHttpClient.Builder().build();
+    private final String esURL;
 
-    public ESClient(String url, String user, String password) {
-        this.url = url;
+    private OkHttpClient basicClient = HttpClients.simpleHttpClient();
+    private boolean checkRunning = true;
+
+    public ESClient(String esURL, String user, String password) {
+        this.esURL = esURL;
         this.user = user;
         this.password = password;
     }
@@ -31,20 +31,20 @@ public class ESClient implements MethodRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                Assume.assumeTrue("Couldn't reach Elasticsearch", is_running());
+                Assume.assumeTrue("Couldn't reach Elasticsearch", !checkRunning || isRunning());
                 base.evaluate();
             }
         };
     }
 
-    public boolean is_running() throws IOException {
+    public boolean isRunning() throws IOException {
         Request request = new Request.Builder()
-                .url(url)
+                .url(esURL)
                 .addHeader(AUTHORIZATION_HEADER,
-                           BASIC_PREFIX + Base64.getEncoder().encodeToString((format("%s:%s", user, password)).getBytes("UTF-8")))
+                           Credentials.basic(user, password))
                 .build();
 
-        Response response = client.newCall(request).execute();
+        Response response = basicClient.newCall(request).execute();
 
         if (!response.isSuccessful()) {
             System.err.println(request.headers());
@@ -53,5 +53,10 @@ public class ESClient implements MethodRule {
         }
 
         return response.isSuccessful();
+    }
+
+    public ESClient checkRunning(boolean checkRunning) {
+        this.checkRunning = checkRunning;
+        return this;
     }
 }
