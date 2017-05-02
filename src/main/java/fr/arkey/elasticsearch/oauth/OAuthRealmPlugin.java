@@ -1,5 +1,8 @@
-package fr.arkey.elasticsearch.oauth.realm;
+package fr.arkey.elasticsearch.oauth;
 
+import fr.arkey.elasticsearch.oauth.realm.OAuthRealm;
+import fr.arkey.elasticsearch.oauth.realm.OAuthReamFactory;
+import fr.arkey.elasticsearch.oauth.realm.OAuthRestAction;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.rest.RestModule;
 import org.elasticsearch.shield.authc.AuthenticationModule;

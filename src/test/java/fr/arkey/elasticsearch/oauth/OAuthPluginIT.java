@@ -1,4 +1,4 @@
-package fr.arkey.elasticsearch.oauth.realm;
+package fr.arkey.elasticsearch.oauth;
 
 import java.io.IOException;
 import java.nio.file.Paths;
