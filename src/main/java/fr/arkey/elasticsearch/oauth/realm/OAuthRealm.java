@@ -1,11 +1,11 @@
 package fr.arkey.elasticsearch.oauth.realm;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import com.google.common.collect.ImmutableSet;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.shield.User;
@@ -15,22 +15,17 @@ import org.elasticsearch.shield.authc.RealmConfig;
 import org.elasticsearch.transport.TransportMessage;
 import org.elasticsearch.watcher.ResourceWatcherService;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.stream.Collectors.joining;
 
 public class OAuthRealm extends Realm<AccessToken> {
-    private static final int MAX_TOTAL_CONNECTION = 200;
-    private static final long CONNECT_TIMEOUT = 10_000L;
-    private static final long SOCKET_TIMEOUT = 10_000L;
-
-
     public static final String TYPE = "oauth";
     private static final AccessToken NOT_AN_OAUTH_TOKEN = null;
     private final RefreshableOAuthRoleMapper roleMapper;
     private final String tokenInfoUserField;
     private final String tokenInfoExpiresIn;
-    private final TimeUnit tokenInfoExpiresInUnit;
-    private final OAuthVerifier oAuthVerifier;
+    private final ChronoUnit tokenInfoExpiresInUnit;
+    private final CachingOAuthTokenRetriever oAuthTokenRetriever;
     private final String tokenInfoScopeField;
 
 
@@ -40,19 +35,31 @@ public class OAuthRealm extends Realm<AccessToken> {
 
         tokenInfoUserField = config.settings().get("token-info.user.field");
         tokenInfoExpiresIn = config.settings().get("token-info.expires-in.field");
-        tokenInfoExpiresInUnit = TimeUnit.valueOf(config.settings()
-                                                        .get("token-info.expires-in.field.unit", SECONDS.name())
-                                                        .toUpperCase(Locale.getDefault()));
+        tokenInfoExpiresInUnit = ChronoUnit.valueOf(config.settings()
+                                                          .get("token-info.expires-in.field.unit", SECONDS.name())
+                                                          .toUpperCase(Locale.getDefault()));
         tokenInfoScopeField = config.settings().get("token-info.scope.field");
+
+        this.oAuthTokenRetriever = new CachingOAuthTokenRetriever(
+                config,
+                new HttpOAuthTokenRetriever(config,
+                                            jsonMap -> new TokenInfo(
+                                                    extractFromMap(jsonMap, tokenInfoUserField, String.class),
+                                                    extractFromMap(jsonMap, tokenInfoExpiresIn, Integer.class),
+                                                    tokenInfoExpiresInUnit,
+                                                    // XXX can I trust the payload
+                                                    ImmutableSet.copyOf(extractFromMap(jsonMap, tokenInfoScopeField, List.class))
+                                            )),
+                TokenInfo::isExpired
+        );
 
         this.roleMapper = new RefreshableOAuthRoleMapper(config,
                                                          watcherService,
                                                          this::expiresAllCacheEntries);
-        this.oAuthVerifier = new OAuthVerifier(config);
     }
 
     private void expiresAllCacheEntries() {
-        // TODO expire cache
+        oAuthTokenRetriever.expiresAll();
     }
 
     /**
@@ -107,21 +114,11 @@ public class OAuthRealm extends Realm<AccessToken> {
      */
     @Override
     public User authenticate(AccessToken oauthToken) {
-        String token = oauthToken.tokenString;
-
-        // TODO caching
-        return oAuthVerifier.performTokenInfoRequest(token)
-                            .map(tokenInfo -> {
-                                     Integer expires_in_seconds = extractFromMap(tokenInfo, tokenInfoExpiresIn, Integer.class);
-                                     String user_id = extractFromMap(tokenInfo, tokenInfoUserField, String.class);
-                                     List<String> scopes = extractFromMap(tokenInfo, tokenInfoScopeField, List.class);
-                                     if (expires_in_seconds < 2) {
-                                         logger.warn("User token for user '{}' expires in {}s", user_id, expires_in_seconds);
-                                     }
-                                     return new User(user_id, roleMapper.rolesFor(user_id, ImmutableSet.copyOf(scopes)));
-                                 }
-                            )
-                            .orElse(null);
+        return oAuthTokenRetriever.getTokenInfo(oauthToken.tokenString)
+                                  .map(tokenInfo -> new User(tokenInfo.userId,
+                                                             roleMapper.rolesFor(tokenInfo.userId,
+                                                                                 tokenInfo.scopes)))
+                                  .orElse(null);
     }
 
     private <T> T extractFromMap(Map<String, Object> jsonMap, String field, Class<T> type) {
@@ -136,13 +133,14 @@ public class OAuthRealm extends Realm<AccessToken> {
     }
 
     /**
-     * This method looks for a user that is identified by the given String, not supported by OAuth plugin.
+     * This method looks for a user that is identified by the given String, not supported
+     * by OAuth plugin as user name is not searchable.
      *
-     * @param username the identifier for the user
-     * @return {@link User} if found, otherwise <code>null</code>
+     * @param ignored ignored
+     * @return <code>null</code>
      */
     @Override
-    public User lookupUser(String username) {
+    public User lookupUser(String ignored) {
         return null;
     }
 

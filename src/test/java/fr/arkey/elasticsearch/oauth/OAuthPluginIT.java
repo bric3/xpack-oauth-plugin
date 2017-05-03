@@ -86,6 +86,43 @@ public class OAuthPluginIT {
         }
     }
 
+
+    @Test
+    public void should_authorize_using_same_token() throws IOException {
+        // Given
+        OAuthAuthenticator authenticator = new PasswordGrantOAuthAuthenticator(tokenEndpoint,
+                                                                               userCredentials("p087320", "azerty"),
+                                                                               companyLabClientCredentials,
+                                                                               trustAllHttpClient());
+        String bearer = authenticator.acquireAccessToken()
+                                     .map(OAuthAuthenticator::toBearer)
+                                     .orElseThrow(() -> new IllegalStateException("Not authenticated"));
+        // first
+        try (Response test = trustAllHttpClient()
+                .newCall(new Request.Builder()
+                                 .url(esUrl)
+                                 .addHeader("Authorization", bearer)
+                                 .get()
+                                 .build())
+                .execute()) {
+            // noop
+        }
+
+
+        // When
+        try (Response test = trustAllHttpClient()
+                .newCall(new Request.Builder()
+                                 .url(esUrl)
+                                 .addHeader("Authorization", bearer)
+                                 .get()
+                                 .build())
+                .execute()) {
+
+            // Then
+            assertThat(test.isSuccessful()).isTrue();
+        }
+    }
+
     @Test
     public void not_authorized_using_client_credentials() throws IOException {
         // Given

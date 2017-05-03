@@ -47,9 +47,6 @@ public class HttpClients {
     }
 
     public static OkHttpClient httpClient(SSLContext sslContext) {
-
-        // Create an ssl socket context with our all-trusting manager
-
         return new OkHttpClient.Builder()
                 .sslSocketFactory(sslContext.getSocketFactory())
                 .connectTimeout(debugging() ? 0 : 10_000, MILLISECONDS)

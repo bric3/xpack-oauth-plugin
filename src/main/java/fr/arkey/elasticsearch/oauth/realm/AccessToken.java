@@ -20,7 +20,10 @@ public class AccessToken implements AuthenticationToken {
 
     @Override
     public String principal() {
-        return null;
+        // known usage are for log :
+        // org.elasticsearch.shield.authc.DefaultAuthenticationFailureHandler.unsuccessfulAuthentication(org.elasticsearch.rest.RestRequest, org.elasticsearch.shield.authc.AuthenticationToken)
+        // org.elasticsearch.shield.audit.logfile.LoggingAuditTrail.authenticationFailed(org.elasticsearch.shield.authc.AuthenticationToken, org.elasticsearch.rest.RestRequest)
+        return BEARER_AUTH_PREFIX + tokenString;
     }
 
     @Override

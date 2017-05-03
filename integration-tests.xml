@@ -81,7 +81,7 @@
         <arg value="-Des.shield.authc.realms.oauth.order=0"/>
         <arg value="-Des.shield.authc.realms.oauth.type=oauth"/>
         <arg value="-Des.shield.authc.realms.oauth.files.role_mapping=config/shield/oauth_role_mapping.yml"/>
-        <arg value="-Des.shield.authc.realms.oauth.token-info-url=https://idp.lab.company.io/nidp/oauth/nam/tokeninfo"/>
+        <arg value="-Des.shield.authc.realms.oauth.token-info.url=https://idp.lab.company.io/nidp/oauth/nam/tokeninfo"/>
         <arg value="-Des.shield.authc.realms.oauth.idp.connection-timeout-in-millis=10000"/>
         <arg value="-Des.shield.authc.realms.oauth.idp.read-timeout-in-millis=10000"/>
         <arg value="-Des.shield.authc.realms.oauth.idp.write-timeout-in-millis=10000"/>
