@@ -3,6 +3,7 @@ package fr.arkey.elasticsearch.oauth.realm;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import com.google.common.collect.ImmutableSet;
@@ -11,7 +12,6 @@ import org.elasticsearch.shield.User;
 import org.elasticsearch.shield.authc.AuthenticationToken;
 import org.elasticsearch.shield.authc.Realm;
 import org.elasticsearch.shield.authc.RealmConfig;
-import org.elasticsearch.shield.ssl.ClientSSLService;
 import org.elasticsearch.transport.TransportMessage;
 import org.elasticsearch.watcher.ResourceWatcherService;
 
@@ -27,7 +27,6 @@ public class OAuthRealm extends Realm<AccessToken> {
     public static final String TYPE = "oauth";
     private static final AccessToken NOT_AN_OAUTH_TOKEN = null;
     private final RefreshableOAuthRoleMapper roleMapper;
-    private final ClientSSLService clientSSLService;
     private final String tokenInfoUserField;
     private final String tokenInfoExpiresIn;
     private final TimeUnit tokenInfoExpiresInUnit;
@@ -36,9 +35,8 @@ public class OAuthRealm extends Realm<AccessToken> {
 
 
     public OAuthRealm(RealmConfig config,
-                      ResourceWatcherService watcherService,
-                      ClientSSLService clientSSLService) {
-        super(TYPE, config);
+                      ResourceWatcherService watcherService) {
+        super(TYPE, Objects.requireNonNull(config));
 
         tokenInfoUserField = config.settings().get("token-info.user.field");
         tokenInfoExpiresIn = config.settings().get("token-info.expires-in.field");
@@ -50,7 +48,6 @@ public class OAuthRealm extends Realm<AccessToken> {
         this.roleMapper = new RefreshableOAuthRoleMapper(config,
                                                          watcherService,
                                                          this::expiresAllCacheEntries);
-        this.clientSSLService = clientSSLService;
         this.oAuthVerifier = new OAuthVerifier(config);
     }
 

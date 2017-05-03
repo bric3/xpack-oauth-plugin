@@ -45,9 +45,10 @@ in the `debug` profile declared in this `pom.xml`.
 - [ ] Cache tokens
 - [x] Reload mapping
 - [x] Investigate `RefreshListener`
-- [ ] Dependency Injection
+- [x] Dependency Injection / avoid it because ES 5 drops guice
 - [ ] Automate testing
 - [ ] Logging
 - [x] Configurable token info field to lookup
 - [ ] truststore, company internal certificate authority
+      (Removed usage of Shield's own `ClientSSLService` because it doesn't allow multiple additional trust manager)
 - [ ] ES 2.3
