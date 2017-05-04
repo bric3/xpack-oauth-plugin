@@ -1,4 +1,4 @@
-package fr.arkey.elasticsearch.oauth.realm;
+package fr.arkey.elasticsearch.oauth.realm.tokeninfo;
 
 import java.util.Objects;
 import java.util.Optional;

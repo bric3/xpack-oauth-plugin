@@ -1,7 +1,8 @@
-package fr.arkey.elasticsearch.oauth.realm;
+package fr.arkey.elasticsearch.oauth.realm.tokeninfo;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import fr.arkey.elasticsearch.oauth.realm.OAuthRealm;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.shield.authc.RealmConfig;
 import org.junit.Rule;

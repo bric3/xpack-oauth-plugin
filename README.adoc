@@ -36,12 +36,17 @@ shield:
           read-timeout-in-millis: 10000
           write-timeout-in-millis: 10000
           max-idle-connections: 200
+          proxy:
+            host: xxx
+            port: xxx
+            username: xxx
+            password: xxx
 
         token-info:
           url: https://idp.company.io/nidp/oauth/nam/token
-          user.field: user_id
-          scope.field: scope
-          expires-in.field: expires_in
+          user.field: "user_id"
+          scope.field: "scope"
+          expires-in.field: "expires_in"
           expires-in.field.unit: SECONDS
           cache:
             max-size : 20000

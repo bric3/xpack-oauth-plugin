@@ -1,4 +1,4 @@
-package fr.arkey.elasticsearch.oauth.realm;
+package fr.arkey.elasticsearch.oauth.realm.tokeninfo;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

@@ -1,5 +1,6 @@
 package fr.arkey.elasticsearch.oauth.realm;
 
+import fr.arkey.elasticsearch.oauth.realm.support.OAuthRealmExceptions;
 import org.elasticsearch.shield.authc.AuthenticationToken;
 
 public class AccessToken implements AuthenticationToken {

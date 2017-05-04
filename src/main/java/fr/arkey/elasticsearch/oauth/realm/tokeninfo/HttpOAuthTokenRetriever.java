@@ -1,4 +1,4 @@
-package fr.arkey.elasticsearch.oauth.realm;
+package fr.arkey.elasticsearch.oauth.realm.tokeninfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import fr.arkey.elasticsearch.oauth.realm.support.OAuthRealmExceptions;
 import okhttp3.Authenticator;
 import okhttp3.ConnectionPool;
 import okhttp3.Credentials;

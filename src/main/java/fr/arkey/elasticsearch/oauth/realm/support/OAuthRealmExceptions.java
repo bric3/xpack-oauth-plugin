@@ -1,4 +1,4 @@
-package fr.arkey.elasticsearch.oauth.realm;
+package fr.arkey.elasticsearch.oauth.realm.support;
 
 import org.elasticsearch.ElasticsearchSecurityException;
 import org.elasticsearch.rest.RestStatus;

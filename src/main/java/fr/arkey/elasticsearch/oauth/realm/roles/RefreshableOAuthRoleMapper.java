@@ -1,4 +1,4 @@
-package fr.arkey.elasticsearch.oauth.realm;
+package fr.arkey.elasticsearch.oauth.realm.roles;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import com.google.common.collect.ImmutableSetMultimap;
+import fr.arkey.elasticsearch.oauth.realm.OAuthRealm;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.settings.Settings;
