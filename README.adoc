@@ -18,6 +18,38 @@ To connect to the instance :
 curl -v --user admin_user:changeme -XGET 'localhost:9400/_cluster/settings' | jq '.'
 ----
 
+
+== Configure the plugin
+
+[source,yaml]
+----
+shield:
+  audit.enabled: true
+  authc:
+    realms:
+      oauth1:
+        order: 0
+        type: oauth
+        files.role_mapping: config/shield/oauth_role_mapping.yml
+        idp:
+          connection-timeout-in-millis: 10000
+          read-timeout-in-millis: 10000
+          write-timeout-in-millis: 10000
+          max-idle-connections: 200
+
+        token-info:
+          url: https://idp.company.io/nidp/oauth/nam/token
+          user.field: user_id
+          scope.field: scope
+          expires-in.field: expires_in
+          expires-in.field.unit: SECONDS
+          cache:
+            max-size : 20000
+            expire-in-seconds : 300
+----
+
+
+
 == Debug the plugin
 
 These steps indicate how to install a debug agent on the ES instance started by ant.
@@ -42,12 +74,12 @@ in the `debug` profile declared in this `pom.xml`.
 
 == TODO
 
-- [ ] Cache tokens
+- [x] Cache tokens
 - [x] Reload mapping
 - [x] Investigate `RefreshListener`
 - [x] Dependency Injection / avoid it because ES 5 drops guice
 - [ ] Automate testing
-- [ ] Logging
+- [x] Logging, via shield configuration
 - [x] Configurable token info field to lookup
 - [ ] truststore, company internal certificate authority
       (Removed usage of Shield's own `ClientSSLService` because it doesn't allow multiple additional trust manager)
