@@ -3,25 +3,20 @@ package fr.arkey.elasticsearch.oauth.realm.tokeninfo;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.net.ProxySelector;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import fr.arkey.elasticsearch.oauth.realm.support.OAuthRealmExceptions;
+import fr.arkey.elasticsearch.oauth.realm.support.Privileges;
 import okhttp3.Authenticator;
 import okhttp3.ConnectionPool;
 import okhttp3.Credentials;
-import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.elasticsearch.SpecialPermission;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.shield.authc.RealmConfig;
@@ -72,37 +67,6 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
         );
     }
 
-    private Optional<Authenticator> proxyAuthenticatorFrom(RealmConfig config) {
-        String proxyUserName = config.settings().get("idp.proxy.username");
-
-        if (config.settings().get("idp.proxy.host") == null
-            || Strings.isEmpty(proxyUserName)) {
-            return Optional.empty();
-        }
-        String proxyPassword = Objects.requireNonNull(config.settings().get("idp.proxy.password"), "missing required setting [idp.proxy.password]");
-
-        return Optional.of((route, response) -> response.request()
-                                                        .newBuilder()
-                                                        .header("Proxy-Authorization",
-                                                                Credentials.basic(proxyUserName, proxyPassword))
-                                                        .build());
-
-    }
-
-    private Optional<Proxy> proxyFrom(RealmConfig config) {
-        String proxyHost = config.settings().get("idp.proxy.host");
-        if (Strings.isEmpty(proxyHost)) {
-            return Optional.empty();
-        }
-        List<Proxy> proxies = ProxySelector.getDefault().select(HttpUrl.parse(tokenInfoUri).uri());
-
-        int proxyPort = Objects.requireNonNull(config.settings().getAsInt("idp.proxy.port", null), "missing required setting [idp.proxy.port]");
-
-
-        return Optional.of(new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(proxyHost, proxyPort)));
-    }
-
-
     /**
      * Perform the HTTP GET request to the provided URL.
      *
@@ -134,6 +98,34 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
         }
     }
 
+    private Optional<Authenticator> proxyAuthenticatorFrom(RealmConfig config) {
+        String proxyUserName = config.settings().get("idp.proxy.username");
+
+        if (config.settings().get("idp.proxy.host") == null
+            || Strings.isEmpty(proxyUserName)) {
+            return Optional.empty();
+        }
+        String proxyPassword = Objects.requireNonNull(config.settings().get("idp.proxy.password"), "missing required setting [idp.proxy.password]");
+
+        return Optional.of((route, response) -> response.request()
+                                                        .newBuilder()
+                                                        .header("Proxy-Authorization",
+                                                                Credentials.basic(proxyUserName, proxyPassword))
+                                                        .build());
+
+    }
+
+
+    private Optional<Proxy> proxyFrom(RealmConfig config) {
+        String proxyHost = config.settings().get("idp.proxy.host");
+        if (Strings.isEmpty(proxyHost)) {
+            return Optional.empty();
+        }
+        int proxyPort = Objects.requireNonNull(config.settings().getAsInt("idp.proxy.port", null), "missing required setting [idp.proxy.port]");
+
+        return Optional.of(new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(proxyHost, proxyPort)));
+    }
+
     private OkHttpClient createIdpHttpClient(long connectionTimeoutInMillis,
                                              long readTimeoutInMillis,
                                              long writeTimeoutInMillis,
@@ -141,7 +133,7 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
                                              Supplier<Optional<Proxy>> proxySupplier,
                                              Supplier<Optional<Authenticator>> proxyAuthenticatorSupplier) {
         // require some special privileges to create the HTTP client
-        return pluginPrivileges(() -> {
+        return Privileges.pluginPrivileges(() -> {
             logger.debug("Configuring OAuth http client with connection timeout : {}ms, socket read timeout : {}, socket write timeout : {}",
                          connectionTimeoutInMillis,
                          readTimeoutInMillis,
@@ -157,16 +149,6 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
             proxyAuthenticatorSupplier.get().ifPresent(okHttpClientBuilder::proxyAuthenticator);
             return okHttpClientBuilder.build();
         });
-    }
-
-    private <T> T pluginPrivileges(PrivilegedAction<T> privilegedAction) {
-        // This will add special permissions need by the plugin.
-        // Check the 'plugin-security.policy' file.
-        SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            sm.checkPermission(new SpecialPermission());
-        }
-        return AccessController.doPrivileged(privilegedAction);
     }
 
     private Response executeRequest(Request req) throws IOException {
