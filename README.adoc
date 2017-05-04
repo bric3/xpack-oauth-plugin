@@ -44,10 +44,11 @@ shield:
 
         token-info:
           url: https://idp.company.io/nidp/oauth/nam/token
-          user.field: "user_id"
-          scope.field: "scope"
-          expires-in.field: "expires_in"
-          expires-in.field.unit: SECONDS
+          field:
+            user: "user_id"
+            scope: "scope"
+            expires-in: "expires_in"
+            expires-in.unit: SECONDS
           cache:
             max-size : 20000
             expire-in-seconds : 300

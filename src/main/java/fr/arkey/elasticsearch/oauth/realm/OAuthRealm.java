@@ -38,12 +38,12 @@ public class OAuthRealm extends Realm<AccessToken> {
                       ResourceWatcherService watcherService) {
         super(TYPE, Objects.requireNonNull(config));
 
-        tokenInfoUserField = config.settings().get("token-info.user.field");
-        tokenInfoExpiresIn = config.settings().get("token-info.expires-in.field");
+        tokenInfoUserField = Objects.requireNonNull(config.settings().get("token-info.field.user"), "missing required setting [token-info.field.user]");
+        tokenInfoExpiresIn = Objects.requireNonNull(config.settings().get("token-info.field.expires-in"), "missing required setting [token-info.field.expires-in]");
         tokenInfoExpiresInUnit = ChronoUnit.valueOf(config.settings()
-                                                          .get("token-info.expires-in.field.unit", SECONDS.name())
+                                                          .get("token-info.field.expires-in.unit", SECONDS.name())
                                                           .toUpperCase(Locale.getDefault()));
-        tokenInfoScopeField = config.settings().get("token-info.scope.field");
+        tokenInfoScopeField = Objects.requireNonNull(config.settings().get("token-info.field.scope"), "missing required setting [token-info.field.scope]");
 
         this.oAuthTokenRetriever = new CachingOAuthTokenRetriever(
                 config,

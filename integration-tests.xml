@@ -89,10 +89,10 @@
         <arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.port=3128"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.username=xxx"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.password=xxx"/>
-        <arg value="-Des.shield.authc.realms.oauth-integ.token-info.user.field=user_id"/>
-        <arg value="-Des.shield.authc.realms.oauth-integ.token-info.scope.field=scope"/>
-        <arg value="-Des.shield.authc.realms.oauth-integ.token-info.expires-in.field=expires_in"/>
-        <arg value="-Des.shield.authc.realms.oauth-integ.token-info.expires-in.field.unit=SECONDS"/>
+        <arg value="-Des.shield.authc.realms.oauth-integ.token-info.field.user=user_id"/>
+        <arg value="-Des.shield.authc.realms.oauth-integ.token-info.field.scope=scope"/>
+        <arg value="-Des.shield.authc.realms.oauth-integ.token-info.field.expires-in=expires_in"/>
+        <arg value="-Des.shield.authc.realms.oauth-integ.token-info.field.expires-in.unit=SECONDS"/>
         <arg value="-Des.shield.audit.enabled=true"/>
         <arg value="-Des.logger.shield.audit.logfile=DEBUG,access_log"/>
         <arg value="-Des.shield.authc.realms.esusers.order=1"/>
