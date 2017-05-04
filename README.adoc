@@ -1,4 +1,4 @@
-= OAuth Shield Plugin for ElasticSearch 2.4
+= OAuth Shield Plugin for ElasticSearch 2.3.4
 
 == Run it simple
 
@@ -83,4 +83,4 @@ in the `debug` profile declared in this `pom.xml`.
 - [x] Configurable token info field to lookup
 - [ ] truststore, company internal certificate authority
       (Removed usage of Shield's own `ClientSSLService` because it doesn't allow multiple additional trust manager)
-- [ ] ES 2.3
+- [x] ES 2.3
