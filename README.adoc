@@ -72,6 +72,14 @@ in the `debug` profile declared in this `pom.xml`.
     that is only executed at the ES startup
 
 
+
+To kill ES just run :
+
+[source,sh]
+----
+kill $(jps | grep Elasticsearch | cut -f 1 -d ' ')
+----
+
 == TODO
 
 - [x] Cache tokens

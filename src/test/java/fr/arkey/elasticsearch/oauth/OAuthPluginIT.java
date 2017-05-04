@@ -22,6 +22,9 @@ import static fr.arkey.elasticsearch.oauth.tools.HttpClients.trustAllHttpClient;
 import static fr.arkey.elasticsearch.oauth.tools.UserCredentials.userCredentials;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/*
+ * Before, run : mvn -Dskip.integ.tests=false pre-integration-test
+ */
 public class OAuthPluginIT {
     private String esUrl = "http://localhost:9400/";
     //    private String tokenEndpoint = "https://internal.domain.com:8443/nidp/oauth/nam/token";
