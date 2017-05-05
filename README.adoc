@@ -27,7 +27,7 @@ shield:
   audit.enabled: true
   authc:
     realms:
-      oauth1:
+      your-oauth-realm-name:
         order: 0
         type: oauth
         files.role_mapping: config/shield/oauth_role_mapping.yml
@@ -77,14 +77,10 @@ in the `debug` profile declared in this `pom.xml`.
     `OAuthRealmPlugin.onModule(org.elasticsearch.shield.authc.AuthenticationModule)`
     that is only executed at the ES startup
 
+5. To kill ES just run :
 
+      kill $(jps | grep Elasticsearch | cut -f 1 -d ' ')
 
-To kill ES just run :
-
-[source,sh]
-----
-kill $(jps | grep Elasticsearch | cut -f 1 -d ' ')
-----
 
 == TODO
 
@@ -98,3 +94,9 @@ kill $(jps | grep Elasticsearch | cut -f 1 -d ' ')
 - [ ] truststore, company internal certificate authority
       (Removed usage of Shield's own `ClientSSLService` because it doesn't allow multiple additional trust manager)
 - [x] ES 2.3
+
+
+== Information
+
+This plugin is loosely based on the example provided https://github.com/elastic/shield-custom-realm-example/tree/2.3[here].
+
