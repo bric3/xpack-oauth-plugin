@@ -1,9 +1,10 @@
 package fr.arkey.elasticsearch.oauth.realm.tokeninfo;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -16,7 +17,6 @@ import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.shield.authc.RealmConfig;
@@ -24,7 +24,6 @@ import org.elasticsearch.shield.authc.RealmConfig;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static okhttp3.CacheControl.FORCE_NETWORK;
-import static org.elasticsearch.common.xcontent.json.JsonXContent.jsonXContent;
 
 /**
  * Token info retriever that will query the token endpoint.
@@ -40,7 +39,7 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
     private static final long CONNECT_TIMEOUT = 10_000L;
     private static final long SOCKET_TIMEOUT = 10_000L;
     private final String tokenInfoUri;
-    private final Function<Map<String, Object>, TokenInfo> tokenInfoMapper;
+    private final Function<InputStream, TokenInfo> tokenInfoMapper;
     private final OkHttpClient httpClient;
 
     /**
@@ -50,7 +49,7 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
      * @param tokenInfoMapper the mapper that can read the token info as a Map to a TokenInfo object
      */
     public HttpOAuthTokenRetriever(RealmConfig config,
-                                   Function<Map<String, Object>, TokenInfo> tokenInfoMapper) {
+                                   Function<InputStream, TokenInfo> tokenInfoMapper) {
         Objects.requireNonNull(config);
         this.tokenInfoMapper = Objects.requireNonNull(tokenInfoMapper);
         this.logger = config.logger(HttpOAuthTokenRetriever.class);
@@ -86,13 +85,10 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
                         .get()
                         .build())) {
             if (tokenInfoResponse.isSuccessful()) {
-                ResponseBody body = tokenInfoResponse.body();
-                Map<String, Object> jsonMap = jsonXContent.createParser(body.byteStream()).map();
-                logger.debug("User authenticated via access token, token info : {}", jsonMap);
-                return Optional.of(tokenInfoMapper.apply(jsonMap));
+                return Optional.of(tokenInfoMapper.apply(tokenInfoResponse.body().byteStream()));
             }
             return Optional.empty();
-        } catch (IOException ioe) {
+        } catch (UncheckedIOException | IOException ioe) {
             logger.error("Could not authenticate user, could be a connection issue", ioe);
             throw OAuthRealmExceptions.authorizationException(ioe);
         }

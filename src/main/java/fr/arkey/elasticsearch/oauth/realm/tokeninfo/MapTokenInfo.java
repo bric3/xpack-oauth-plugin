@@ -1,5 +1,8 @@
 package fr.arkey.elasticsearch.oauth.realm.tokeninfo;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
@@ -13,8 +16,9 @@ import org.elasticsearch.shield.authc.RealmConfig;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.stream.Collectors.joining;
+import static org.elasticsearch.common.xcontent.json.JsonXContent.jsonXContent;
 
-public class MapTokenInfo implements Function<Map<String, Object>, TokenInfo> {
+public class MapTokenInfo implements Function<InputStream, TokenInfo> {
     private final ESLogger logger;
     private final String userIdField;
     private final String expiresInField;
@@ -33,14 +37,22 @@ public class MapTokenInfo implements Function<Map<String, Object>, TokenInfo> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public TokenInfo apply(Map<String, Object> jsonMap) {
-        return new TokenInfo(
-                extractFromMap(jsonMap, userIdField, String.class),
-                extractFromMap(jsonMap, expiresInField, Integer.class),
-                expiresInUnit,
-                // XXX can I trust the payload
-                ImmutableSet.copyOf(extractFromMap(jsonMap, scopeField, List.class))
-        );
+    public TokenInfo apply(InputStream inputStream) {
+        try {
+            Map<String, Object> jsonMap = jsonXContent.createParser(inputStream).map();
+            logger.debug("User authenticated via access token, token info : {}", jsonMap);
+
+            return new TokenInfo(
+                    extractFromMap(jsonMap, userIdField, String.class),
+                    extractFromMap(jsonMap, expiresInField, Integer.class),
+                    expiresInUnit,
+                    // XXX can I trust the payload
+                    ImmutableSet.copyOf(extractFromMap(jsonMap, scopeField, List.class))
+            );
+        } catch (IOException ioe) {
+            logger.error("Could not authenticate user, could be a connection issue", ioe);
+            throw new UncheckedIOException(ioe);
+        }
     }
 
     private <T> T extractFromMap(Map<String, Object> jsonMap, String field, Class<T> type) {

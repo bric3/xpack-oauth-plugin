@@ -1,9 +1,5 @@
 package fr.arkey.elasticsearch.oauth.realm;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 import fr.arkey.elasticsearch.oauth.realm.roles.RefreshableOAuthRoleMapper;
 import fr.arkey.elasticsearch.oauth.realm.tokeninfo.OAuthTokenRetriever;
@@ -18,13 +14,10 @@ import org.elasticsearch.transport.TransportMessage;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -33,8 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 public class OAuthRealmTest {
-    @Rule
-    public TemporaryFolder home = new TemporaryFolder();
     @Rule
     public MockitoRule mrulez = MockitoJUnit.rule();
 
@@ -86,37 +77,17 @@ public class OAuthRealmTest {
 
     @Before
     public void initialize_realm() {
-        writeRoleMappingFile();
         oAuthRealm = new OAuthRealm(
                 new RealmConfig("oauth",
                                 Settings.builder()
                                         .put("type", OAuthRealm.TYPE)
-                                        .put("token-info.url", "http://localhost:80/token-info")
-                                        .put("token-info.field.user", "user_id")
-                                        .put("token-info.field.expires-in", "expires_in")
-                                        .put("token-info.field.scope", "scope")
                                         .build(),
                                 Settings.builder()
-                                        .put("path.home", home.getRoot().toPath())
+                                        .put("path.home", "ignored")
                                         .build()),
                 tokenInfoRetriever,
                 oAuthRoleMapper);
     }
-
-    private void writeRoleMappingFile() {
-        try {
-            Path shieldConfigDir = home.getRoot().toPath().resolve("config/shield");
-            Files.createDirectories(shieldConfigDir);
-            Files.write(shieldConfigDir.resolve("oauth_role_mapping.yml"),
-                        ("only-role:\n" +
-                         "  - user1\n" +
-                         "  - user2").getBytes("UTF-8"),
-                        CREATE, TRUNCATE_EXISTING);
-        } catch (IOException ioe) {
-            throw new UncheckedIOException(ioe);
-        }
-    }
-
 
     private static class DummyMessageTransportMessage extends TransportMessage<DummyMessageTransportMessage> {
     }

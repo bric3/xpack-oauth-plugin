@@ -23,7 +23,6 @@ public class OAuthRealm extends Realm<AccessToken> {
                RefreshableOAuthRoleMapper refreshableOAuthRoleMapper) {
         super(TYPE, Objects.requireNonNull(config));
         this.oAuthTokenRetriever = tokenInfoRetriever;
-
         this.roleMapper = refreshableOAuthRoleMapper;
     }
 
