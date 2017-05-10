@@ -2,12 +2,10 @@ package fr.arkey.elasticsearch.oauth.realm.roles;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Set;
 import fr.arkey.elasticsearch.oauth.realm.OAuthRealm;
-import fr.arkey.elasticsearch.oauth.realm.roles.RefreshableOAuthRoleMapper;
+import fr.arkey.elasticsearch.oauth.tools.TestResources;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.shield.authc.RealmConfig;
 import org.elasticsearch.shield.authc.support.RefreshListener;
@@ -100,7 +98,7 @@ public class RefreshableOAuthRoleMapperTest {
 
     @Before
     public void set_up_role_mapper() throws IOException {
-        Files.copy(testResourcesPath().resolve("oauth_role_mapping.yml"),
+        Files.copy(TestResources.testResourcesPath().resolve("oauth_role_mapping.yml"),
                    home.getRoot().toPath().resolve("oauth_role_mapping.yml"),
                    REPLACE_EXISTING,
                    COPY_ATTRIBUTES);
@@ -116,14 +114,7 @@ public class RefreshableOAuthRoleMapperTest {
                                                 onResourceRefresh);
     }
 
-
     private Set<String> scopes() {
         return Collections.emptySet();
     }
-
-    private Path testResourcesPath() {
-        return Paths.get(this.getClass().getClassLoader().getResource("").getPath());
-    }
-
-
 }
