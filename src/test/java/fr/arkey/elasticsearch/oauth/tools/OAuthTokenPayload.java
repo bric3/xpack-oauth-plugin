@@ -47,9 +47,9 @@ public final class OAuthTokenPayload {
     @JsonProperty("user_id")
     public final String userId;
 
-    @JsonProperty("scopes")
+    @JsonProperty("scope")
     @JsonSerialize(converter = OAuthScopes.OAuthScopesConverter.class)
-    public final OAuthScopes scopes;
+    public final OAuthScopes scope;
 
     @JsonCreator
     public OAuthTokenPayload(@JsonProperty("access_token") String accessToken,
@@ -59,7 +59,7 @@ public final class OAuthTokenPayload {
                              @JsonProperty("issued_at") Long issuedAt,
                              @JsonProperty("client_id") String clientId,
                              @JsonProperty("user_id") String userId,
-                             @JsonProperty("scopes") Set<String> scopes) {
+                             @JsonProperty("scope") Set<String> scopes) {
 
         this(accessToken,
              tokenType,
@@ -78,7 +78,7 @@ public final class OAuthTokenPayload {
                              Long issuedAt,
                              String clientId,
                              String userId,
-                             OAuthScopes scopes) {
+                             OAuthScopes scope) {
 
         this.accessToken = accessToken;
         this.tokenType = tokenType;
@@ -88,7 +88,7 @@ public final class OAuthTokenPayload {
         this.issuedAt = issuedAt;
         this.clientId = clientId;
         this.userId = userId;
-        this.scopes = scopes;
+        this.scope = scope;
     }
 
     @JsonIgnore
@@ -110,12 +110,12 @@ public final class OAuthTokenPayload {
                Objects.equals(issuedAt, that.issuedAt) &&
                Objects.equals(clientId, that.clientId) &&
                Objects.equals(userId, that.userId) &&
-               Objects.equals(scopes, that.scopes);
+               Objects.equals(scope, that.scope);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(accessToken, tokenType, refreshToken, expiresIn, expiresAt, issuedAt, clientId, userId, scopes);
+        return Objects.hash(accessToken, tokenType, refreshToken, expiresIn, expiresAt, issuedAt, clientId, userId, scope);
     }
 
     @Override
@@ -129,7 +129,7 @@ public final class OAuthTokenPayload {
                ", issuedAt=" + issuedAt +
                ", clientId='" + clientId + '\'' +
                ", userId='" + userId + '\'' +
-               ", scopes=" + scopes +
+               ", scope=" + scope +
                '}';
     }
 
