@@ -47,7 +47,7 @@ public class OAuthAuthenticationFailureHandler extends DefaultAuthenticationFail
     public ElasticsearchSecurityException unsuccessfulAuthentication(RestRequest request, AuthenticationToken token) {
         ElasticsearchSecurityException e = super.unsuccessfulAuthentication(request, token);
         // set a custom header
-        e.addHeader("WWW-Authenticate", "custom-challenge");
+        e.addHeader("WWW-Authenticate", "oauth-error");
         return e;
     }
 
@@ -55,7 +55,7 @@ public class OAuthAuthenticationFailureHandler extends DefaultAuthenticationFail
     public ElasticsearchSecurityException unsuccessfulAuthentication(TransportMessage message, AuthenticationToken token, String action) {
         ElasticsearchSecurityException e = super.unsuccessfulAuthentication(message, token, action);
         // set a custom header
-        e.addHeader("WWW-Authenticate", "custom-challenge");
+        e.addHeader("WWW-Authenticate", "oauth-error");
         return e;
     }
 
@@ -63,7 +63,7 @@ public class OAuthAuthenticationFailureHandler extends DefaultAuthenticationFail
     public ElasticsearchSecurityException missingToken(RestRequest request) {
         ElasticsearchSecurityException e = super.missingToken(request);
         // set a custom header
-        e.addHeader("WWW-Authenticate", "custom-challenge");
+        e.addHeader("WWW-Authenticate", "oauth-error");
         return e;
     }
 
@@ -71,7 +71,7 @@ public class OAuthAuthenticationFailureHandler extends DefaultAuthenticationFail
     public ElasticsearchSecurityException missingToken(TransportMessage message, String action) {
         ElasticsearchSecurityException e = super.missingToken(message, action);
         // set a custom header
-        e.addHeader("WWW-Authenticate", "custom-challenge");
+        e.addHeader("WWW-Authenticate", "oauth-error");
         return e;
     }
 
@@ -79,7 +79,7 @@ public class OAuthAuthenticationFailureHandler extends DefaultAuthenticationFail
     public ElasticsearchSecurityException exceptionProcessingRequest(RestRequest request, Exception e) {
         ElasticsearchSecurityException se = super.exceptionProcessingRequest(request, e);
         // set a custom header
-        se.addHeader("WWW-Authenticate", "custom-challenge");
+        se.addHeader("WWW-Authenticate", "oauth-error");
         return se;
     }
 
@@ -87,7 +87,7 @@ public class OAuthAuthenticationFailureHandler extends DefaultAuthenticationFail
     public ElasticsearchSecurityException exceptionProcessingRequest(TransportMessage message, Exception e) {
         ElasticsearchSecurityException se = super.exceptionProcessingRequest(message, e);
         // set a custom header
-        se.addHeader("WWW-Authenticate", "custom-challenge");
+        se.addHeader("WWW-Authenticate", "oauth-error");
         return se;
     }
 
@@ -95,7 +95,7 @@ public class OAuthAuthenticationFailureHandler extends DefaultAuthenticationFail
     public ElasticsearchSecurityException authenticationRequired(String action) {
         ElasticsearchSecurityException se = super.authenticationRequired(action);
         // set a custom header
-        se.addHeader("WWW-Authenticate", "custom-challenge");
+        se.addHeader("WWW-Authenticate", "oauth-error");
         return se;
     }
 }
