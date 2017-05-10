@@ -1,70 +1,30 @@
 package fr.arkey.elasticsearch.oauth.realm;
 
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import com.google.common.collect.ImmutableSet;
-import fr.arkey.elasticsearch.oauth.realm.support.OAuthRealmExceptions;
-import fr.arkey.elasticsearch.oauth.realm.tokeninfo.CachingOAuthTokenRetriever;
 import fr.arkey.elasticsearch.oauth.realm.roles.RefreshableOAuthRoleMapper;
-import fr.arkey.elasticsearch.oauth.realm.tokeninfo.HttpOAuthTokenRetriever;
-import fr.arkey.elasticsearch.oauth.realm.tokeninfo.TokenInfo;
+import fr.arkey.elasticsearch.oauth.realm.tokeninfo.OAuthTokenRetriever;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.shield.User;
 import org.elasticsearch.shield.authc.AuthenticationToken;
 import org.elasticsearch.shield.authc.Realm;
 import org.elasticsearch.shield.authc.RealmConfig;
 import org.elasticsearch.transport.TransportMessage;
-import org.elasticsearch.watcher.ResourceWatcherService;
-
-import static java.time.temporal.ChronoUnit.SECONDS;
-import static java.util.stream.Collectors.joining;
 
 public class OAuthRealm extends Realm<AccessToken> {
     public static final String TYPE = "oauth";
     private static final AccessToken NOT_AN_OAUTH_TOKEN = null;
     private final RefreshableOAuthRoleMapper roleMapper;
-    private final String tokenInfoUserField;
-    private final String tokenInfoExpiresIn;
-    private final ChronoUnit tokenInfoExpiresInUnit;
-    private final CachingOAuthTokenRetriever oAuthTokenRetriever;
-    private final String tokenInfoScopeField;
+    private final OAuthTokenRetriever oAuthTokenRetriever;
 
 
     public OAuthRealm(RealmConfig config,
-                      ResourceWatcherService watcherService) {
+               OAuthTokenRetriever tokenInfoRetriever,
+               RefreshableOAuthRoleMapper refreshableOAuthRoleMapper) {
         super(TYPE, Objects.requireNonNull(config));
+        this.oAuthTokenRetriever = tokenInfoRetriever;
 
-        tokenInfoUserField = Objects.requireNonNull(config.settings().get("token-info.field.user"), "missing required setting [token-info.field.user]");
-        tokenInfoExpiresIn = Objects.requireNonNull(config.settings().get("token-info.field.expires-in"), "missing required setting [token-info.field.expires-in]");
-        tokenInfoExpiresInUnit = ChronoUnit.valueOf(config.settings()
-                                                          .get("token-info.field.expires-in.unit", SECONDS.name())
-                                                          .toUpperCase(Locale.getDefault()));
-        tokenInfoScopeField = Objects.requireNonNull(config.settings().get("token-info.field.scope"), "missing required setting [token-info.field.scope]");
-
-        this.oAuthTokenRetriever = new CachingOAuthTokenRetriever(
-                config,
-                new HttpOAuthTokenRetriever(config,
-                                            jsonMap -> new TokenInfo(
-                                                    extractFromMap(jsonMap, tokenInfoUserField, String.class),
-                                                    extractFromMap(jsonMap, tokenInfoExpiresIn, Integer.class),
-                                                    tokenInfoExpiresInUnit,
-                                                    // XXX can I trust the payload
-                                                    ImmutableSet.copyOf(extractFromMap(jsonMap, tokenInfoScopeField, List.class))
-                                            )),
-                TokenInfo::isExpired
-        );
-
-        this.roleMapper = new RefreshableOAuthRoleMapper(config,
-                                                         watcherService,
-                                                         this::expiresAllCacheEntries);
-    }
-
-    private void expiresAllCacheEntries() {
-        oAuthTokenRetriever.expiresAll();
+        this.roleMapper = refreshableOAuthRoleMapper;
     }
 
     /**
@@ -126,16 +86,6 @@ public class OAuthRealm extends Realm<AccessToken> {
                                   .orElse(null);
     }
 
-    private <T> T extractFromMap(Map<String, Object> jsonMap, String field, Class<T> type) {
-        Object value = jsonMap.get(field);
-        if (type.isInstance(value)) {
-            return type.cast(value);
-        }
-        logger.warn("Cannot extract '{}' token info having the following fields '{}', is oauth realm properly configured ?",
-                    field,
-                    jsonMap.keySet().stream().collect(joining(", ", "[", "]")));
-        throw OAuthRealmExceptions.authorizationException();
-    }
 
     /**
      * This method looks for a user that is identified by the given String, not supported

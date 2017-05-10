@@ -1,5 +1,6 @@
 package fr.arkey.elasticsearch.oauth.realm;
 
+import java.util.Objects;
 import fr.arkey.elasticsearch.oauth.realm.support.OAuthRealmExceptions;
 import org.elasticsearch.shield.authc.AuthenticationToken;
 
@@ -39,5 +40,18 @@ public class AccessToken implements AuthenticationToken {
 
     public static boolean isBearer(String header) {
         return header.startsWith(BEARER_AUTH_PREFIX);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AccessToken that = (AccessToken) o;
+        return Objects.equals(tokenString, that.tokenString);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tokenString);
     }
 }

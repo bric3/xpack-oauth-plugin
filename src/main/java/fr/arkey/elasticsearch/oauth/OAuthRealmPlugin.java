@@ -15,8 +15,7 @@ public class OAuthRealmPlugin extends Plugin {
 
     @Override
     public String description() {
-        return "simple oauth realm, that can read the 'Authentication: Bearer <token>' header, " +
-               "and deal with it ?";
+        return "simple oauth realm, that can read the 'Authentication: Bearer <token>' header";
     }
 
 
