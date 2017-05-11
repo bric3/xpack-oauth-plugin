@@ -3,7 +3,6 @@ package fr.arkey.elasticsearch.oauth.realm.support;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.rest.BaseRestHandler;
 import org.elasticsearch.rest.BytesRestResponse;
@@ -19,17 +18,16 @@ public class OAuthRestAction extends BaseRestHandler {
                            RestController controller) {
         super(settings, controller, client);
         controller.registerHandler(RestRequest.Method.GET, "/_oauth/state", this);
-//        controller.registerHandler(RestRequest.Method.POST, "/_oauth/state", this);
     }
 
     @Override
     protected void handleRequest(RestRequest request,
                                  RestChannel channel,
                                  Client client) throws Exception {
-        XContentBuilder builder = JsonXContent.contentBuilder();
-        builder.startObject()
-               .field("active", "true")
-               .endObject();
-        channel.sendResponse(new BytesRestResponse(RestStatus.OK, builder));
+        channel.sendResponse(new BytesRestResponse(RestStatus.OK,
+                                                   JsonXContent.contentBuilder()
+                                                               .startObject()
+                                                               .field("active", true)
+                                                               .endObject()));
     }
 }
