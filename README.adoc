@@ -32,26 +32,26 @@ shield:
         type: oauth
         files.role_mapping: config/shield/oauth_role_mapping.yml
         idp:
-          connection-timeout-in-millis: 10000
-          read-timeout-in-millis: 10000
-          write-timeout-in-millis: 10000
-          max-idle-connections: 200
+          connection-timeout-in-millis: 10000 # optional connection tiemout, defaults to 10s
+          read-timeout-in-millis: 10000       # optional read response timeout, defaults to 10s
+          write-timeout-in-millis: 10000      # optional write request timeout, defaults to 10s
+          max-idle-connections: 200           # optional max number of connections, defaults to 200 connections
           proxy:
-            host: xxx
-            port: xxx
-            username: xxx
-            password: xxx
+            host: xxx       # optional
+            port: xxx       # mandatory if host is declared
+            username: xxx   # mandatory if host is declared
+            password: xxx   # mandatory if username is declared
 
         token-info:
-          url: https://idp.company.io/nidp/oauth/nam/token
+          url: https:/authority/path/to/tokeninfo # mandatory token-info url
           field:
-            user: "user_id"
-            scope: "scope"
-            expires-in: "expires_in"
-            expires-in.unit: SECONDS
+            user: "user_id"          # mandatory user id field name in token json payload
+            scope: "scope"           # mandatory scope field name in token json payload
+            expires-in: "expires_in" # mandatory expiration field name in token json payload
+            expires-in.unit: SECONDS # optional time unit of expiration (values from java.time.temporal.ChronoUnit)
           cache:
-            max-size : 20000
-            expire-in-seconds : 300
+            max-size : 20000         # optional max cache size, defaults to 20000 entries
+            expire-in-seconds : 300  # optional cache entry expiration, defaults to 5min
 ----
 
 
