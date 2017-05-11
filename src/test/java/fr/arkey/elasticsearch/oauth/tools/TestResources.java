@@ -10,12 +10,10 @@ import java.util.Properties;
 
 public class TestResources {
 
-//    public static final int IDP_PORT;
+    private static final Properties TEST_PROPERTIES = loadFromFile(testResourcesPath().resolve("test.properties"));
 
-    static {
-        Properties testProperties = loadFromFile(testResourcesPath().resolve("test.properties"));
-
-//        IDP_PORT = Integer.parseInt(testProperties.getProperty("idp.port"));
+    public static int idpPort() {
+        return Integer.parseInt(TEST_PROPERTIES.getProperty("idp.port"));
     }
 
     public static Path testResourcesPath() {

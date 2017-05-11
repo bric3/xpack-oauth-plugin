@@ -27,7 +27,7 @@
         <inceptionYear>2017</inceptionYear>
 
         <elasticsearch.version>${project.parent.version}</elasticsearch.version>
-        <project.plugin.version>0.3-shield_${elasticsearch.version}</project.plugin.version>
+        <project.plugin.version>0.4-SNAPSHOT-shield_${elasticsearch.version}</project.plugin.version>
 
         <!-- define the plugin classname so it can be put in the descriptor -->
         <elasticsearch.plugin.classname>fr.arkey.elasticsearch.oauth.OAuthRealmPlugin</elasticsearch.plugin.classname>
@@ -200,7 +200,36 @@
     <build>
         <!--<finalName>${project.artifactId}-${project.plugin.version}</finalName>-->
 
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>reserve-network-port</id>
+                        <goals>
+                            <goal>reserve-network-port</goal>
+                        </goals>
+                        <!-- executes before test resource filtering -->
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <portNames>
+                                <portName>idp.server.port</portName>
+                            </portNames>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -387,6 +416,24 @@
                     <execution>
                         <id>integ-tests</id>
                         <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Enable integration tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <configuration>
+                    <failIfNoTests>true</failIfNoTests>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>verify</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

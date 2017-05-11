@@ -93,12 +93,12 @@
         <arg value="-Des.shield.authc.realms.oauth-integ.order=0"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.type=oauth"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.files.role_mapping=config/shield/oauth_role_mapping.yml"/>
-        <arg value="-Des.shield.authc.realms.oauth-integ.token-info.url=https://idp.lab.company.io/nidp/oauth/nam/tokeninfo"/>
+        <arg value="-Des.shield.authc.realms.oauth-integ.token-info.url=http://localhost:${idp.server.port}/nidp/oauth/nam/tokeninfo"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.idp.connection-timeout-in-millis=10000"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.idp.read-timeout-in-millis=10000"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.idp.write-timeout-in-millis=10000"/>
-        <!--<arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.host=138.21.89.91"/>-->
-        <!--<arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.port=3128"/>-->
+        <!--<arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.host=..."/>-->
+        <!--<arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.port=..."/>-->
         <!--<arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.username=..."/>-->
         <!--<arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.password=..."/>-->
         <arg value="-Des.shield.authc.realms.oauth-integ.token-info.field.user=user_id"/>
