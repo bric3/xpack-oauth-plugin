@@ -12,10 +12,7 @@
     <artifactId>shield-oauth-realm</artifactId>
     <name>Shield: Shield OAuth Realm</name>
     <description>OAuth realm for Shield</description>
-
-    <prerequisites>
-        <maven>3.1.0</maven>
-    </prerequisites>
+    <version>0.1-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -25,6 +22,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <inceptionYear>2017</inceptionYear>
+
+        <elasticsearch.version>${project.parent.version}</elasticsearch.version>
 
         <!-- define the plugin classname so it can be put in the descriptor -->
         <elasticsearch.plugin.classname>fr.arkey.elasticsearch.oauth.OAuthRealmPlugin</elasticsearch.plugin.classname>
@@ -177,18 +176,20 @@
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>${project.version}</version>
+            <version>${elasticsearch.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.plugin</groupId>
             <artifactId>shield</artifactId>
-            <version>${project.version}</version>
+            <version>${elasticsearch.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}-${project.version}-shield-${elasticsearch.version}</finalName>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
