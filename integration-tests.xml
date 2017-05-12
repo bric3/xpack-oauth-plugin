@@ -36,9 +36,10 @@
   </macrodef>
 
   <target name="start-external-cluster-with-plugin" depends="setup-workspace">
-    <ac:for list="${plugins.list}" param="plugin.name">
+    <!-- install elasticsearch plugin dependencies -->
+    <ac:for list="${plugin.dependencies.list}" param="plugin.name">
       <sequential>
-        <fail message="Expected @{plugin.name}-${version}.zip as a dependency, but could not be found in ${integ.deps}/plugins}">
+        <fail message="Expected @{plugin.dependencies.list}-${elasticsearch.version}.zip as a dependency, but could not be found in ${integ.deps}/plugins}">
           <condition>
             <not>
               <available file="${integ.deps}/plugins/@{plugin.name}-${elasticsearch.version}.zip" />
@@ -47,17 +48,21 @@
         </fail>
       </sequential>
     </ac:for>
-
-    <ac:for param="file">
-      <path>
-        <fileset dir="${integ.deps}/plugins"/>
-      </path>
+    <ac:for list="${plugin.dependencies.list}" param="plugin.name">
       <sequential>
-        <local name="plugin.name"/>
-        <convert-plugin-name file="@{file}" outputproperty="plugin.name"/>
-        <install-plugin name="${plugin.name}" file="@{file}"/>
+        <install-plugin name="@{plugin.name}" file="${integ.deps}/plugins/@{plugin.name}-${elasticsearch.version}.zip"/>
       </sequential>
     </ac:for>
+
+    <!-- install this project's plugin -->
+    <fail message="Expected ${integ.deps}/plugins/${project.artifactId}-${project.plugin.version}.zip, but could not be found}">
+      <condition>
+        <not>
+          <available file="${integ.deps}/plugins/${project.artifactId}-${project.plugin.version}.zip" />
+        </not>
+      </condition>
+    </fail>
+    <install-plugin name="${project.artifactId}" file="${integ.deps}/plugins/${project.artifactId}-${project.plugin.version}.zip"/>
 
     <local name="home"/>
     <property name="home" location="${integ.scratch}/elasticsearch-${elasticsearch.version}"/>
@@ -74,6 +79,13 @@
       </nested>
     </run-script>
 
+    <fail message="Expected ${project.build.testOutputDirectory}/oauth_role_mapping.yml, but could not be found, try 'mvn test-compile' first}">
+      <condition>
+        <not>
+          <available file="${project.build.testOutputDirectory}/oauth_role_mapping.yml" />
+        </not>
+      </condition>
+    </fail>
     <copy file="${project.build.testOutputDirectory}/oauth_role_mapping.yml" todir="${home}/config/shield/" />
 
     <startup-elasticsearch>
@@ -85,10 +97,10 @@
         <arg value="-Des.shield.authc.realms.oauth-integ.idp.connection-timeout-in-millis=10000"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.idp.read-timeout-in-millis=10000"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.idp.write-timeout-in-millis=10000"/>
-        <arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.host=138.21.89.91"/>
-        <arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.port=3128"/>
-        <arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.username=xxx"/>
-        <arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.password=xxx"/>
+        <!--<arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.host=138.21.89.91"/>-->
+        <!--<arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.port=3128"/>-->
+        <!--<arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.username=..."/>-->
+        <!--<arg value="-Des.shield.authc.realms.oauth-integ.idp.proxy.password=..."/>-->
         <arg value="-Des.shield.authc.realms.oauth-integ.token-info.field.user=user_id"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.token-info.field.scope=scope"/>
         <arg value="-Des.shield.authc.realms.oauth-integ.token-info.field.expires-in=expires_in"/>

@@ -12,7 +12,10 @@
     <artifactId>shield-oauth-realm</artifactId>
     <name>Shield: Shield OAuth Realm</name>
     <description>OAuth realm for Shield</description>
-    <version>0.1-SNAPSHOT</version>
+    <!-- using variable causes maven warnings, yet I would like
+         to be able to release revisions of my plugin targeting ES/ shield versions.
+         -->
+    <version>${project.plugin.version}</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -24,6 +27,7 @@
         <inceptionYear>2017</inceptionYear>
 
         <elasticsearch.version>${project.parent.version}</elasticsearch.version>
+        <project.plugin.version>0.1_shield_${elasticsearch.version}-SNAPSHOT</project.plugin.version>
 
         <!-- define the plugin classname so it can be put in the descriptor -->
         <elasticsearch.plugin.classname>fr.arkey.elasticsearch.oauth.OAuthRealmPlugin</elasticsearch.plugin.classname>
@@ -32,7 +36,7 @@
 
         <!-- define the location and information for the integration tests run as part of the verify phase -->
         <elasticsearch.integ.antfile>${project.basedir}/integration-tests.xml</elasticsearch.integ.antfile>
-        <plugins.list>license,shield,shield-oauth-realm</plugins.list>
+        <plugin.dependencies.list>license,shield</plugin.dependencies.list>
         <xlint.options>-Xlint:-rawtypes</xlint.options>
 
         <!-- From org.elasticsearch:parent:2.4.4 -->
@@ -110,6 +114,12 @@
             <version>3.6.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>ant-contrib</groupId>
+            <artifactId>ant-contrib</artifactId>
+            <version>1.0b3</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- test -->
         <dependency>
@@ -188,7 +198,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}-${project.version}-shield-${elasticsearch.version}</finalName>
+        <!--<finalName>${project.artifactId}-${project.plugin.version}</finalName>-->
 
         <plugins>
             <plugin>
