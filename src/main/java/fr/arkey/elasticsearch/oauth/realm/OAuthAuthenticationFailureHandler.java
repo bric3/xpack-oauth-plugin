@@ -23,79 +23,26 @@ import org.elasticsearch.ElasticsearchSecurityException;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.shield.authc.AuthenticationToken;
 import org.elasticsearch.shield.authc.DefaultAuthenticationFailureHandler;
-import org.elasticsearch.transport.TransportMessage;
 
 /**
- * A custom implementation of a {@link org.elasticsearch.shield.authc.AuthenticationFailureHandler}. The methods in this
- * class must return an {@link ElasticsearchSecurityException} with the appropriate status and headers for a client to
- * be able to handle an authentication failure. These methods can be called when there is a missing token, failure
- * to authenticate an extracted token, or when an exception occurs processing a request.
+ * Failure handler that detects when an authentication fails due to a unknown access token.
  *
- * This class extends the {@link DefaultAuthenticationFailureHandler} provided by Shield and changes the
- * <code>WWW-Authenticate</code> header to return a custom challenge for demonstration purposes. The default return
- * value is a 401 status with a Basic authentication challenge.
+ * Other failures are ignored because this implementation doesn't know which authentication has been used.
+ * As {@link ElasticsearchSecurityException} header is a map, we cannot have multiple {@code WWW-Authenticate}
+ * header lines, the only option is to add the auth scheme on the same line. Also it seems that it checks this header
+ * only contains one value. Indeed this header grammar is ambiguous see this this answer on
+ * <a href="http://stackoverflow.com/questions/10239970/what-is-the-delimiter-for-www-authenticate-for-multiple-schemes">StackOverflow</a>.
  *
- * Other implementations may choose to simply implement the {@link org.elasticsearch.shield.authc.AuthenticationFailureHandler}
- * interface and construct the {@link ElasticsearchSecurityException} instances in the methods with the appropriate
- * {@link org.elasticsearch.rest.RestStatus} and headers. One example is for a realm that will integrate with a single
- * sign on service as in most cases these realms will need to redirect with a {@link org.elasticsearch.rest.RestStatus#FOUND}
- * and <code>Location</code> header with the URL to the SSO login page.
+ * So the only thing handled is {@link #unsuccessfulAuthentication(RestRequest, AuthenticationToken)}, others are ignored.
  */
 public class OAuthAuthenticationFailureHandler extends DefaultAuthenticationFailureHandler {
 
     @Override
     public ElasticsearchSecurityException unsuccessfulAuthentication(RestRequest request, AuthenticationToken token) {
         ElasticsearchSecurityException e = super.unsuccessfulAuthentication(request, token);
-        // set a custom header
-        e.addHeader("WWW-Authenticate", "oauth-error");
+        if (token instanceof AccessToken) {
+            e.addHeader("WWW-Authenticate", "Bearer realm=\"shield\"");
+        }
         return e;
-    }
-
-    @Override
-    public ElasticsearchSecurityException unsuccessfulAuthentication(TransportMessage message, AuthenticationToken token, String action) {
-        ElasticsearchSecurityException e = super.unsuccessfulAuthentication(message, token, action);
-        // set a custom header
-        e.addHeader("WWW-Authenticate", "oauth-error");
-        return e;
-    }
-
-    @Override
-    public ElasticsearchSecurityException missingToken(RestRequest request) {
-        ElasticsearchSecurityException e = super.missingToken(request);
-        // set a custom header
-        e.addHeader("WWW-Authenticate", "oauth-error");
-        return e;
-    }
-
-    @Override
-    public ElasticsearchSecurityException missingToken(TransportMessage message, String action) {
-        ElasticsearchSecurityException e = super.missingToken(message, action);
-        // set a custom header
-        e.addHeader("WWW-Authenticate", "oauth-error");
-        return e;
-    }
-
-    @Override
-    public ElasticsearchSecurityException exceptionProcessingRequest(RestRequest request, Exception e) {
-        ElasticsearchSecurityException se = super.exceptionProcessingRequest(request, e);
-        // set a custom header
-        se.addHeader("WWW-Authenticate", "oauth-error");
-        return se;
-    }
-
-    @Override
-    public ElasticsearchSecurityException exceptionProcessingRequest(TransportMessage message, Exception e) {
-        ElasticsearchSecurityException se = super.exceptionProcessingRequest(message, e);
-        // set a custom header
-        se.addHeader("WWW-Authenticate", "oauth-error");
-        return se;
-    }
-
-    @Override
-    public ElasticsearchSecurityException authenticationRequired(String action) {
-        ElasticsearchSecurityException se = super.authenticationRequired(action);
-        // set a custom header
-        se.addHeader("WWW-Authenticate", "oauth-error");
-        return se;
     }
 }

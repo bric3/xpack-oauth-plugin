@@ -7,6 +7,7 @@ import fr.arkey.elasticsearch.oauth.tools.ESClient;
 import fr.arkey.elasticsearch.oauth.tools.HttpClients.OAuthAuthenticator;
 import fr.arkey.elasticsearch.oauth.tools.HttpClients.OAuthClientGrantAuthenticator;
 import fr.arkey.elasticsearch.oauth.tools.HttpClients.PasswordGrantOAuthAuthenticator;
+import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -127,9 +128,9 @@ public class OAuthPluginIT {
     }
 
     @Test
-    public void not_authorized_using_client_credentials() throws IOException {
+    public void not_authorized_using_unknown_token() throws IOException {
         // Given
-        String bearer = BEARER_PREFIX + "token_too_old";
+        String bearer = BEARER_PREFIX + "token_too_old_or_unknown_token";
 
         // When
         try (Response test = trustAllHttpClient()
@@ -142,6 +143,26 @@ public class OAuthPluginIT {
 
             // Then
             assertThat(test.isSuccessful()).isFalse();
+            assertThat(test.headers().get("WWW-Authenticate")).isEqualTo("Bearer realm=\"shield\"");
+        }
+    }
+
+    @Test
+    public void not_authorized_failure_using_basic_auth_header_refer_to_basic_realm() throws IOException {
+        // Given
+
+        // When
+        try (Response test = trustAllHttpClient()
+                .newCall(new Request.Builder()
+                                 .url("http://localhost:9400/")
+                                 .addHeader("Authorization", Credentials.basic("bad_user", "bad_password"))
+                                 .get()
+                                 .build())
+                .execute()) {
+
+            // Then
+            assertThat(test.isSuccessful()).isFalse();
+            assertThat(test.headers().get("WWW-Authenticate")).isEqualTo("Basic realm=\"shield\"");
         }
     }
 

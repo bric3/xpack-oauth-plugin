@@ -1,5 +1,6 @@
 package fr.arkey.elasticsearch.oauth;
 
+import fr.arkey.elasticsearch.oauth.realm.OAuthAuthenticationFailureHandler;
 import fr.arkey.elasticsearch.oauth.realm.OAuthRealm;
 import fr.arkey.elasticsearch.oauth.realm.OAuthReamFactory;
 import fr.arkey.elasticsearch.oauth.realm.support.OAuthRestAction;
@@ -22,8 +23,7 @@ public class OAuthRealmPlugin extends Plugin {
     public void onModule(AuthenticationModule authenticationModule) {
         authenticationModule.addCustomRealm(OAuthRealm.TYPE, OAuthReamFactory.class);
 
-        // not needed it seem
-//        authenticationModule.setAuthenticationFailureHandler(CustomAuthenticationFailureHandler.class);
+        authenticationModule.setAuthenticationFailureHandler(OAuthAuthenticationFailureHandler.class);
     }
 
     public void onModule(RestModule restModule) {
