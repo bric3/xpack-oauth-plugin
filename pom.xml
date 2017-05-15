@@ -27,7 +27,7 @@
         <inceptionYear>2017</inceptionYear>
 
         <elasticsearch.version>${project.parent.version}</elasticsearch.version>
-        <project.plugin.version>0.1_shield_${elasticsearch.version}</project.plugin.version>
+        <project.plugin.version>0.2-SNAPSHOT_shield_${elasticsearch.version}</project.plugin.version>
 
         <!-- define the plugin classname so it can be put in the descriptor -->
         <elasticsearch.plugin.classname>fr.arkey.elasticsearch.oauth.OAuthRealmPlugin</elasticsearch.plugin.classname>
