@@ -12,7 +12,7 @@
     <artifactId>shield-oauth-realm</artifactId>
     <name>Shield: Shield OAuth Realm</name>
     <description>OAuth realm for Shield</description>
-    <!-- using variable causes maven warnings, yet I would like
+    <!-- XXX using variables causes maven warnings, yet I would like
          to be able to release revisions of my plugin targeting ES/ shield versions.
          -->
     <version>${project.plugin.version}</version>
@@ -27,7 +27,7 @@
         <inceptionYear>2017</inceptionYear>
 
         <elasticsearch.version>${project.parent.version}</elasticsearch.version>
-        <project.plugin.version>0.1_shield_${elasticsearch.version}-SNAPSHOT</project.plugin.version>
+        <project.plugin.version>0.1_shield_${elasticsearch.version}</project.plugin.version>
 
         <!-- define the plugin classname so it can be put in the descriptor -->
         <elasticsearch.plugin.classname>fr.arkey.elasticsearch.oauth.OAuthRealmPlugin</elasticsearch.plugin.classname>
