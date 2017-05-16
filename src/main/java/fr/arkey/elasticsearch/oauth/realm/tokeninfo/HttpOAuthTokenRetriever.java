@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.net.UnknownHostException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -14,6 +15,7 @@ import fr.arkey.elasticsearch.oauth.realm.support.Privileges;
 import okhttp3.Authenticator;
 import okhttp3.ConnectionPool;
 import okhttp3.Credentials;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -23,6 +25,7 @@ import org.elasticsearch.shield.authc.RealmConfig;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.stream.Collectors.joining;
 import static okhttp3.CacheControl.FORCE_NETWORK;
 
 /**
@@ -41,6 +44,7 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
     private final String tokenInfoUri;
     private final Function<InputStream, TokenInfo> tokenInfoMapper;
     private final OkHttpClient httpClient;
+    private final String name;
 
     /**
      * Build the token info retriever.
@@ -51,6 +55,7 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
     public HttpOAuthTokenRetriever(RealmConfig config,
                                    Function<InputStream, TokenInfo> tokenInfoMapper) {
         Objects.requireNonNull(config);
+        this.name = Objects.requireNonNull(config.name());
         this.tokenInfoMapper = Objects.requireNonNull(tokenInfoMapper);
         this.logger = config.logger(HttpOAuthTokenRetriever.class);
         this.tokenInfoUri = Objects.requireNonNull(config.settings().get("token-info.url"), "missing required setting [token-info.url]");
@@ -64,6 +69,35 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
                 () -> proxyFrom(config),
                 () -> proxyAuthenticatorFrom(config)
         );
+
+        logHttpClientSettings();
+    }
+
+    private void logHttpClientSettings() {
+        Optional<String> resolved = tryResolveUri();
+
+        logger.debug("[{}] OAuth realm HTTP client settings :\n" +
+                     "  proxy : {} {}\n" +
+                     "  connection timeout : {} ms\n" +
+                     "  write timeout : {} ms\n" +
+                     "  read timeout : {} ms\n" +
+                     "  resolved IPs for '{}' : {}",
+                     name,
+                     httpClient.proxyAuthenticator() != Authenticator.NONE ? "<authenticated>" : "<un-authenticated>",
+                     httpClient.proxy() != null ? httpClient.proxy().address() : "<none>",
+                     httpClient.connectTimeoutMillis(),
+                     httpClient.writeTimeoutMillis(),
+                     httpClient.readTimeoutMillis(),
+                     tokenInfoUri,
+                     resolved.orElse("unresolved at this time"));
+    }
+
+    private Optional<String> tryResolveUri() {
+        try {
+            return Optional.of(httpClient.dns().lookup(HttpUrl.parse(tokenInfoUri).host()).stream().map(Object::toString).collect(joining(",")));
+        } catch (UnknownHostException e) {
+            return Optional.empty();
+        }
     }
 
     /**
@@ -86,6 +120,8 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
                         .build())) {
             if (tokenInfoResponse.isSuccessful()) {
                 return Optional.of(tokenInfoMapper.apply(tokenInfoResponse.body().byteStream()));
+            } else if(tokenInfoResponse.headers().names().contains("WWW-Authenticate")) {
+                throw OAuthRealmExceptions.authorizationException(tokenInfoResponse.header("WWW-Authenticate"));
             }
             return Optional.empty();
         } catch (UncheckedIOException | IOException ioe) {

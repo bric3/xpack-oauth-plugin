@@ -20,4 +20,13 @@ public class OAuthRealmExceptions {
         e.addHeader("WWW-Authenticate", "Bearer realm=\"shield\" charset=\"UTF-8\"");
         return e;
     }
+
+    public static ElasticsearchSecurityException authorizationException(String wwwAuthenticateError) {
+        ElasticsearchSecurityException e = new ElasticsearchSecurityException(
+                "Authentication failed",
+                RestStatus.UNAUTHORIZED
+                );
+        e.addHeader("WWW-Authenticate", "Bearer realm=\"shield\" charset=\"UTF-8\" delegateError=\"" + wwwAuthenticateError + "\"");
+        return e;
+    }
 }

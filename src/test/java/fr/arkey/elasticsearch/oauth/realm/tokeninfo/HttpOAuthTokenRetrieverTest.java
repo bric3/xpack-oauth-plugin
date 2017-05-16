@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import fr.arkey.elasticsearch.oauth.realm.OAuthRealm;
 import okhttp3.HttpUrl;
+import org.assertj.core.api.Condition;
 import org.elasticsearch.ElasticsearchSecurityException;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.shield.authc.RealmConfig;
@@ -60,7 +61,7 @@ public class HttpOAuthTokenRetrieverTest {
                                         .put("path.home", "ignored")
                                         .build()),
                 contentIS -> {
-                    try(InputStream is = contentIS) {
+                    try (InputStream is = contentIS) {
                         JsonNode jsonNode = objectMapper.readTree(is);
                         return new TokenInfo(jsonNode.get("user_id").asText(),
                                              jsonNode.get("expires_in").asInt(), SECONDS,
@@ -109,7 +110,11 @@ public class HttpOAuthTokenRetrieverTest {
                         )
         );
 
-        assertThat(tokenRetriever.getTokenInfo("an_expired_access_token")).isEmpty();
+        assertThatExceptionOfType(ElasticsearchSecurityException.class).isThrownBy(() -> tokenRetriever.getTokenInfo("an_expired_access_token"))
+                                                                       .has(headerContaining("WWW-Authenticate",
+                                                                                             "delegateError=\"error=OAuth bearer token required. Token has expired\""))
+                                                                       .has(headerContaining("WWW-Authenticate",
+                                                                                             "Bearer realm=\"shield\" charset=\"UTF-8\""));
     }
 
 
@@ -145,9 +150,10 @@ public class HttpOAuthTokenRetrieverTest {
         );
         given(tokenBodyReader.apply(any())).willThrow(new UncheckedIOException(new IOException()));
 
-        assertThatExceptionOfType(ElasticsearchSecurityException.class).isThrownBy(() -> tokenRetriever.getTokenInfo("an_expired_access_token"));
+        assertThatExceptionOfType(ElasticsearchSecurityException.class).isThrownBy(() -> tokenRetriever.getTokenInfo("an_expired_access_token"))
+                                                                       .has(headerContaining("WWW-Authenticate",
+                                                                                             "Bearer realm=\"shield\" charset=\"UTF-8\""));
     }
-
 
 
     private String tokenInfoPayload(String user, int expiresIn) {
@@ -160,5 +166,16 @@ public class HttpOAuthTokenRetrieverTest {
                "," +
                "\"scope\":[]" +
                "}";
+    }
+
+    private Condition<ElasticsearchSecurityException> headerContaining(final String header, final String valueToBeContainted) {
+        return new Condition<ElasticsearchSecurityException>() {
+            @Override
+            public boolean matches(ElasticsearchSecurityException value) {
+                return value.getHeader(header)
+                            .stream()
+                            .anyMatch(hv -> hv.contains(valueToBeContainted));
+            }
+        };
     }
 }
