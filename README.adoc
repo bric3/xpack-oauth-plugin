@@ -1,4 +1,4 @@
-= OAuth Shield Plugin for ElasticSearch 2.3.4
+= OAuth Shield Plugin for ElasticSearch 2.3.2
 
 == Run it simple
 
