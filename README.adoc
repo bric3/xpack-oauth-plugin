@@ -39,7 +39,7 @@ shield:
           proxy:
             host: xxx       # optional
             port: xxx       # mandatory if host is declared
-            username: xxx   # mandatory if host is declared
+            username: xxx   # optional if host is declared
             password: xxx   # mandatory if username is declared
 
         token-info:
@@ -82,19 +82,35 @@ in the `debug` profile declared in this `pom.xml`.
       kill $(jps | grep Elasticsearch | cut -f 1 -d ' ')
 
 
+== Run integration tests
+
+[source,sh]
+----
+mvn integration-test
+----
+
+== Packages the plugin
+
+[source,sh]
+----
+mvn package
+----
+
+The plugin zip file will be located in `target/release/plugin.zip`, e.g. `target/release/shield-oauth-realm-0.4-SNAPSHOT-shield_2.3.2.zip`
+
 == TODO
 
 - [x] Cache tokens
 - [x] Reload mapping
 - [x] Investigate `RefreshListener`
 - [x] Dependency Injection / avoid it because ES 5 drops guice
-- [ ] Automate testing
+- [x] Automate testing
 - [x] Logging, via shield configuration
 - [x] Configurable token info field to lookup
-- [ ] truststore, company internal certificate authority
+- [x] truststore, company internal certificate authority => Not necessary
       (Removed usage of Shield's own `ClientSSLService` because it doesn't allow multiple additional trust manager)
 - [x] ES 2.3
-
+- [ ] Remove maven warning due to variable usage in project version
 
 == Information
 
