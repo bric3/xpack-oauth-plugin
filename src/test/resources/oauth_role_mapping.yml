@@ -1,5 +1,6 @@
-user:
-  - 123
+user: #some comment
+  - 123 # some comment
+  # some comment
   - 321
   - 39e8732d-8de4-4eb0-bcfa-e7e429710306
   - "39e8732d-8de4-4eb0-bcfa-e7e429710306"
