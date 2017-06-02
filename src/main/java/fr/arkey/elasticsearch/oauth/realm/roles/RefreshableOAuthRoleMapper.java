@@ -1,3 +1,18 @@
+/*
+ * Copyright 2017 Brice Dutheil
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package fr.arkey.elasticsearch.oauth.realm.roles;
 
 import java.io.BufferedInputStream;
@@ -8,30 +23,29 @@ import java.util.List;
 import java.util.Set;
 import com.google.common.collect.ImmutableSetMultimap;
 import fr.arkey.elasticsearch.oauth.realm.OAuthRealm;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
-import org.elasticsearch.shield.ShieldPlugin;
-import org.elasticsearch.shield.authc.RealmConfig;
-import org.elasticsearch.shield.authc.support.RefreshListener;
 import org.elasticsearch.watcher.FileChangesListener;
 import org.elasticsearch.watcher.FileWatcher;
 import org.elasticsearch.watcher.ResourceWatcherService;
+import org.elasticsearch.xpack.XPackPlugin;
+import org.elasticsearch.xpack.security.authc.RealmConfig;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * A refreshable role user mapper service.
- *
+ * <p>
  * It will read the role mapping file defined in this setting : {@code shield.authc.realms.oauth.files.role_mapping}
  * and watch for any change on this file.
- *
+ * <p>
  * Any error in this file will have the same effect of an empty file.
  */
 public class RefreshableOAuthRoleMapper {
-    private final ESLogger logger;
-    private final RefreshListener listener;
+    private final Logger logger;
+    private final Runnable listener;
     private final Path oauthRoleMappingFile;
     private volatile ImmutableSetMultimap<String, String> refreshableRoleMapping;
 
@@ -40,13 +54,13 @@ public class RefreshableOAuthRoleMapper {
      * the role mapping file defined in this setting : {@code shield.authc.realms.oauth.files.role_mapping}
      * and watch for any change on this file.
      *
-     * @param realmConfig the configuration to create the realm with
-     * @param watcherService the elasticsearch watcher service
+     * @param realmConfig         the configuration to create the realm with
+     * @param watcherService      the elasticsearch watcher service
      * @param onRoleMappingChange the listener that will be notified on the file change
      */
     public RefreshableOAuthRoleMapper(RealmConfig realmConfig,
                                       ResourceWatcherService watcherService,
-                                      RefreshListener onRoleMappingChange) {
+                                      Runnable onRoleMappingChange) {
 
         this.logger = requireNonNull(realmConfig).logger(this.getClass());
         this.listener = requireNonNull(onRoleMappingChange);
@@ -54,14 +68,14 @@ public class RefreshableOAuthRoleMapper {
         oauthRoleMappingFile = resolveRoleMappingFile(realmConfig.settings(), realmConfig.env());
         loadRoleMappingFile();
         configureAndStartRoleMappingFileWatcher(realmConfig,
-                                                requireNonNull(watcherService),
-                                                ResourceWatcherService.Frequency.HIGH,
-                                                this::loadRoleMappingFile);
+                requireNonNull(watcherService),
+                ResourceWatcherService.Frequency.HIGH,
+                this::loadRoleMappingFile);
     }
 
     /**
      * Identify the roles for the given user id.
-     *
+     * <p>
      * Note scopes is not yet supported, it may come as a later improvement.
      *
      * @param userId The user id to match
@@ -77,13 +91,13 @@ public class RefreshableOAuthRoleMapper {
         logger.info("Loading OAuth role mapping file [{}]", oauthRoleMappingFile);
         try (BufferedInputStream roleMappingFIS = new BufferedInputStream(Files.newInputStream(oauthRoleMappingFile))) {
             Settings oauthMappingSettings = Settings.builder()
-                                                    .loadFromStream(oauthRoleMappingFile.getFileName().toString(),
-                                                                    roleMappingFIS)
-                                                    .build();
+                    .loadFromStream(oauthRoleMappingFile.getFileName().toString(),
+                            roleMappingFIS)
+                    .build();
 
             ImmutableSetMultimap.Builder<String, String> builder = ImmutableSetMultimap.builder();
             oauthMappingSettings.getAsStructuredMap()
-                                .forEach((role, userIds) -> builder.putAll(role, (List<String>) userIds));
+                    .forEach((role, userIds) -> builder.putAll(role, (List<String>) userIds));
             ImmutableSetMultimap<String, String> roleUserIds = builder.build();
 
             return roleUserIds.inverse();
@@ -110,9 +124,9 @@ public class RefreshableOAuthRoleMapper {
             public void onFileChanged(Path file) {
                 if (file.equals(oauthRoleMappingFile)) {
                     logger.info("OAuth role mappings file [{}] changed for realm [{}/{}]. updating mappings...",
-                                file.toAbsolutePath(),
-                                OAuthRealm.TYPE,
-                                config.name());
+                            file.toAbsolutePath(),
+                            OAuthRealm.TYPE,
+                            config.name());
                     onFileChanged.run();
                 }
             }
@@ -122,8 +136,8 @@ public class RefreshableOAuthRoleMapper {
             watcherService.add(watcher, frequency);
         } catch (IOException e) {
             throw new ElasticsearchException("failed to start file watcher for role mapping file [" +
-                                             oauthRoleMappingFile.toAbsolutePath()
-                                             + "]"
+                    oauthRoleMappingFile.toAbsolutePath()
+                    + "]"
             );
         }
     }
@@ -132,12 +146,12 @@ public class RefreshableOAuthRoleMapper {
         try {
             refreshableRoleMapping = parseRoleMappingFile(oauthRoleMappingFile);
         } catch (Throwable throwable) {
-            logger.error("failed to parse role mappings file [{}]. skipping/removing all mappings...",
-                         throwable,
-                         oauthRoleMappingFile.toAbsolutePath());
+            logger.error("failed to parse role mappings file [{}]. skipping/removing all mappings... (Got : {}",
+                    oauthRoleMappingFile.toAbsolutePath(),
+                    throwable);
             refreshableRoleMapping = ImmutableSetMultimap.of();
         } finally {
-            listener.onRefresh();
+            listener.run();
         }
     }
 
@@ -145,7 +159,7 @@ public class RefreshableOAuthRoleMapper {
         // es.shield.authc.realms.oauth.files.role_mapping
         String location = settings.get("files.role_mapping");
         return location == null ?
-               ShieldPlugin.resolveConfigFile(env, "oauth_role_mapping.yml") : // config_dir/shield/oauth_role_mapping.yml
-               env.binFile().getParent().resolve(location);
+                XPackPlugin.resolveConfigFile(env, "oauth_role_mapping.yml") : // config_dir/shield/oauth_role_mapping.yml
+                env.binFile().getParent().resolve(location);
     }
 }

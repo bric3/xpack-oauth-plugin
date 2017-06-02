@@ -1,4 +1,25 @@
+/*
+ * Copyright 2017 Brice Dutheil
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package fr.arkey.elasticsearch.oauth.realm.tokeninfo;
+
+import com.google.common.collect.ImmutableSet;
+import fr.arkey.elasticsearch.oauth.realm.support.OAuthRealmExceptions;
+import org.apache.logging.log4j.Logger;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.xpack.security.authc.RealmConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,17 +30,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
-import com.google.common.collect.ImmutableSet;
-import fr.arkey.elasticsearch.oauth.realm.support.OAuthRealmExceptions;
-import org.elasticsearch.common.logging.ESLogger;
-import org.elasticsearch.shield.authc.RealmConfig;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.stream.Collectors.joining;
 import static org.elasticsearch.common.xcontent.json.JsonXContent.jsonXContent;
 
 public class MapTokenInfo implements Function<InputStream, TokenInfo> {
-    private final ESLogger logger;
+    private final Logger logger;
     private final String userIdField;
     private final String expiresInField;
     private final ChronoUnit expiresInUnit;
@@ -39,7 +56,7 @@ public class MapTokenInfo implements Function<InputStream, TokenInfo> {
     @Override
     public TokenInfo apply(InputStream inputStream) {
         try {
-            Map<String, Object> jsonMap = jsonXContent.createParser(inputStream).map();
+            Map<String, Object> jsonMap = jsonXContent.createParser(NamedXContentRegistry.EMPTY, inputStream).map();
             logger.debug("User authenticated via access token, token info : {}", jsonMap);
 
             return new TokenInfo(

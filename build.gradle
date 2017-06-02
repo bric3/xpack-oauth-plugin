@@ -1,0 +1,295 @@
+/*
+ * Licensed to Elasticsearch under one or more contributor
+ * license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright
+ * ownership. Elasticsearch licenses this file to you under
+ * the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import org.elasticsearch.gradle.MavenFilteringHack
+import org.elasticsearch.gradle.VersionProperties
+import org.elasticsearch.gradle.test.RestIntegTestTask
+
+version = '0.5'
+ext.versions = [
+        elasticsearch: '5.4.0'
+]
+
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            url "https://artifacts.elastic.co/maven"
+        }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath "org.elasticsearch.gradle:build-tools:5.4.0"
+        classpath "gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.14.0"
+    }
+}
+
+// Hack to restore the original test task from the java plugin, which has been removed by Elasticsearch build-tools
+def reconfigureDefaultTest(Project project, JavaPluginConvention pluginConvention) {
+//    project.tasks.each { t -> println t }
+    def oldTestTask = project.tasks.findByPath('test')
+
+//    print "old task : "
+//    println oldTestTask.getClass()
+//
+    if (oldTestTask == null) {
+        // no test task, ok, user will use testing task on their own
+        return
+    }
+    tasks.remove(oldTestTask)
+
+//    project.tasks.withType(Test.class, new Action<Test>() {
+//        void execute(Test test) {
+//            test.getConventionMapping().map("testClassesDir", new Callable<Object>() {
+//                Object call() throws Exception {
+//                    return pluginConvention.sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).output.classesDir;
+//                }
+//            });
+//            test.getConventionMapping().map("classpath", new Callable<Object>() {
+//                Object call() throws Exception {
+//                    return pluginConvention.sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).runtimeClasspath;
+//                }
+//            });
+//        }
+//    })
+
+    Map properties = [
+            name       : 'test',
+            type       : Test.class,
+            dependsOn  : oldTestTask.dependsOn,
+            group      : JavaBasePlugin.VERIFICATION_GROUP,
+            description: 'Runs regular unit tests'
+    ]
+//    oldTestTask.classpath.each { c -> println c }
+
+    Test testTask = project.tasks.create(properties);
+    testTask.classpath = oldTestTask.classpath
+    testTask.testClassesDir = oldTestTask.testClassesDir
+}
+
+//apply plugin: 'java'
+//print "Java task : "
+//println project.tasks.findByPath('test').getClass()
+
+apply plugin: 'elasticsearch.build'
+//println project.tasks.findByPath('test').getClass()
+//print "ES testClasses task : "
+//println project.tasks.findByPath('testClasses').getClass()
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'com.github.hierynomus.license'
+
+//println project.convention.plugins.java
+reconfigureDefaultTest(project, project.convention.plugins.java)
+//println project.tasks.findByPath('test').getClass()
+
+license {
+    header rootProject.file('LICENSE-header.txt')
+    strictCheck true
+    mapping {
+        java = 'SLASHSTAR_STYLE'
+    }
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url "https://artifacts.elastic.co/maven"
+    }
+}
+
+configurations {
+    // exclude securemock which is a repackaged mockito 1.x that conflict with this project's version of mockito
+    testCompile.exclude group: 'org.elasticsearch', module: 'securemock'
+    // hacks to reenable transitive dependencies, otherwise you have to declare everything
+    testCompile.dependencies.all { dep ->
+        if (dep.group.startsWith('org.mockito') || dep.group.startsWith('com.github.tomakehurst')) {
+            dep.transitive = true
+        }
+    }
+
+    // ugly hack to force wiremock dependency versions
+    all {
+        resolutionStrategy {
+            force "com.google.guava:guava:18.0"
+            force "com.fasterxml.jackson.core:jackson-core:2.8.6"
+            force "com.fasterxml.jackson.core:jackson-databind:2.8.6"
+            force "com.fasterxml.jackson.core:jackson-annotations:2.8.6"
+            force "net.sf.jopt-simple:jopt-simple:5.0.2"
+            force "org.apache.commons:commons-lang3:3.5"
+            force "junit:junit:4.12"
+            force "org.apache.httpcomponents:httpclient:4.5.2"
+            force "org.apache.httpcomponents:httpcore:4.4.5"
+            force "commons-logging:commons-logging:1.2"
+            force "commons-codec:commons-codec:1.10"
+            force "org.slf4j:slf4j-api:1.7.12"
+
+            // force accessors-smart 1.2, because accessors-smart 1.1 shadows asm as well which was causing jarHell task to scream
+            force "net.minidev:accessors-smart:1.2"
+        }
+    }
+}
+
+dependencies {
+    // note, elasticsearch disable by default transitive dependencies
+    compile "com.squareup.okhttp3:okhttp:3.8.0"
+    compile "com.squareup.okio:okio:1.13.0"
+
+//    runtime "com.squareup.okhttp3:okhttp:3.8.0"
+//    runtime "com.squareup.okio:okio:1.13.0"
+
+    provided "org.apache.logging.log4j:log4j-api:2.8.2"
+    provided "org.elasticsearch:elasticsearch:${versions.elasticsearch}"
+    provided "org.elasticsearch.plugin:x-pack-api:${versions.elasticsearch}"
+    provided "org.elasticsearch:jna:4.4.0"
+
+    testCompile "org.mockito:mockito-core:2.8.9"
+    testCompile "org.assertj:assertj-core:3.7.0"
+    testCompile "com.fasterxml.jackson.core:jackson-core:2.8.6"
+    testCompile "com.fasterxml.jackson.core:jackson-databind:2.8.6"
+    testCompile "com.fasterxml.jackson.core:jackson-annotations:2.8.6"
+    testCompile "org.apache.commons:commons-lang3:3.5"
+    testCompile "com.github.tomakehurst:wiremock:2.6.0"
+
+//    testCompile "org.elasticsearch.test:framework:${version}"
+//    testCompile "org.elasticsearch.client:x-pack-transport:${version}"
+//    testCompile "org.apache.lucene:lucene-test-framework:${versions.lucene}"
+//    testCompile "org.apache.logging.log4j:log4j-api:${versions.log4j}"
+//    testCompile "org.apache.logging.log4j:log4j-core:${versions.log4j}"
+
+    testRuntime "org.elasticsearch.plugin:x-pack:${versions.elasticsearch}@zip"
+}
+
+Map generateSubstitutions() {
+    def stringSnap = { version ->
+        if (version.endsWith("-SNAPSHOT")) {
+            return version.substring(0, version.length() - 9)
+        }
+        return version
+    }
+    return [
+            'version'      : stringSnap(version),
+            'xpack.version': stringSnap(VersionProperties.elasticsearch),
+            'java.version' : targetCompatibility as String,
+    ]
+}
+
+def idpServerPort = 9201
+
+// Disabling Elasticsearch imported tasks that I'd like to avoid because too cumbersome
+copyCheckstyleConf.enabled false
+checkstyleMain.enabled false
+checkstyleTest.enabled false
+forbiddenApisTest.enabled false
+dependencyLicenses.enabled false
+namingConventions.enabled false
+thirdPartyAudit.enabled false
+
+
+processResources {
+    MavenFilteringHack.filter(it, generateSubstitutions())
+}
+
+processTestResources {
+    MavenFilteringHack.filter(it, [
+            'idp.server.port': idpServerPort
+    ])
+}
+
+task buildZip(type: Zip, dependsOn: [jar]) {
+    from 'build/resources/main/x-pack-extension-descriptor.properties'
+//    from 'src/'  <= plugin-security
+    from configurations.compile - configurations.provided
+    from project.jar
+    archiveName "${project.name}-${project.version}-xpack_${versions.elasticsearch}.zip"
+}
+
+
+RestIntegTestTask integTest = project.tasks.create('integTest', RestIntegTestTask.class) {
+    runner.systemProperty 'tests.security.manager', 'false'
+}
+integTest.dependsOn(project.buildZip)
+integTest.mustRunAfter(project.precommit, project.test)
+project.check.dependsOn(integTest)
+
+integTestCluster {
+    // See
+    // - org.elasticsearch.gradle.test.ClusterConfiguration
+    // - org.elasticsearch.gradle.test.ClusterFormationTasks
+    numNodes 1
+    httpPort 9400
+    transportPort 9500
+//    debug true // if true, adds -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000
+
+    setting "xpack.monitoring.enabled", "false" // monitoring depends on painless which is not available to us
+    setting "xpack.ml.enabled", "false"
+    // ml has named writeables and the check for cluster state consistency doesn't know about them
+//    setting "xpack.security.authc.realms.custom.order", "0"
+//    setting "xpack.security.authc.realms.custom.type", "custom"
+//    setting "xpack.security.authc.realms.custom.users.user1.password", "changeme"
+//    setting "xpack.security.authc.realms.custom.users.user1.roles", "superuser"
+//    setting "xpack.security.authc.realms.custom.users.user2.password", "changeme"
+//    setting "xpack.security.authc.realms.custom.users.user2.roles", "superuser"
+//    setting "xpack.security.authc.realms.custom.users.user3.password", "changeme"
+//    setting "xpack.security.authc.realms.custom.users.user3.roles", "superuser"
+
+    setting "xpack.security.authc.realms.oauth-integ.order", "0"
+    setting "xpack.security.authc.realms.oauth-integ.type", "oauth"
+    setting "xpack.security.authc.realms.oauth-integ.files.role_mapping", "config/shield/oauth_role_mapping.yml"
+    setting "xpack.security.authc.realms.oauth-integ.token-info.url", "http://localhost:${idpServerPort}/nidp/oauth/nam/tokeninfo"
+    setting "xpack.security.authc.realms.oauth-integ.idp.connection-timeout-in-millis", "10000"
+    setting "xpack.security.authc.realms.oauth-integ.idp.read-timeout-in-millis", "10000"
+    setting "xpack.security.authc.realms.oauth-integ.idp.write-timeout-in-millis", "10000"
+//    setting "xpack.security.authc.realms.oauth-integ.idp.proxy.host", "..."
+//    setting "xpack.security.authc.realms.oauth-integ.idp.proxy.port", "..."
+//    setting "xpack.security.authc.realms.oauth-integ.idp.proxy.username", "..."
+//    setting "xpack.security.authc.realms.oauth-integ.idp.proxy.password", "..."
+    setting "xpack.security.authc.realms.oauth-integ.token-info.field.user", "user_id"
+    setting "xpack.security.authc.realms.oauth-integ.token-info.field.scope", "scope"
+    setting "xpack.security.authc.realms.oauth-integ.token-info.field.expires-in", "expires_in"
+    setting "xpack.security.authc.realms.oauth-integ.token-info.field.expires-in.unit", "SECONDS"
+    setting "xpack.security.authc.realms.file.order", "1"
+    setting "xpack.security.authc.realms.file.type", "file"
+
+    setting "xpack.security.audit.enabled", "true"
+//    setting "logger.shield.audit.logfile", "DEBUG,access_log"
+
+
+    setupCommand 'installXPackPlugin',
+            'bin/elasticsearch-plugin', 'install', configurations.testRuntime.filter { File file -> file.getName().equals("x-pack-${versions.elasticsearch}.zip".toString()) }.getSingleFile().toURI().toString()
+    setupCommand 'setupDummyUser',
+            'bin/x-pack/users', 'useradd', 'admin_user', '-p', 'changeme', '-r', 'superuser'
+    setupCommand 'installExtension',
+            'bin/x-pack/extension', 'install', 'file:' + buildZip.archivePath
+    waitCondition = { node, ant ->
+        File tmpFile = new File(node.cwd, 'wait.success')
+        ant.get(src: "http://${node.httpUri()}",
+                dest: tmpFile.toString(),
+                username: 'admin_user',
+                password: 'changeme',
+                ignoreerrors: true,
+                retries: 10)
+        return tmpFile.exists()
+    }
+}
+
