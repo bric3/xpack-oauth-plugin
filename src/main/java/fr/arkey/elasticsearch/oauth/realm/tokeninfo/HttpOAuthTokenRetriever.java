@@ -135,7 +135,7 @@ public class HttpOAuthTokenRetriever implements OAuthTokenRetriever {
                         .build())) {
             if (tokenInfoResponse.isSuccessful()) {
                 return Optional.of(tokenInfoMapper.apply(tokenInfoResponse.body().byteStream()));
-            } else if(tokenInfoResponse.headers().names().contains("WWW-Authenticate")) {
+            } else if (tokenInfoResponse.headers().names().contains("WWW-Authenticate")) {
                 throw OAuthRealmExceptions.authorizationException(tokenInfoResponse.header("WWW-Authenticate"));
             }
             return Optional.empty();

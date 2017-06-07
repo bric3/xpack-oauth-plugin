@@ -68,9 +68,9 @@ public class RefreshableOAuthRoleMapper {
         oauthRoleMappingFile = resolveRoleMappingFile(realmConfig.settings(), realmConfig.env());
         loadRoleMappingFile();
         configureAndStartRoleMappingFileWatcher(realmConfig,
-                requireNonNull(watcherService),
-                ResourceWatcherService.Frequency.HIGH,
-                this::loadRoleMappingFile);
+                                                requireNonNull(watcherService),
+                                                ResourceWatcherService.Frequency.HIGH,
+                                                this::loadRoleMappingFile);
     }
 
     /**
@@ -91,13 +91,13 @@ public class RefreshableOAuthRoleMapper {
         logger.info("Loading OAuth role mapping file [{}]", oauthRoleMappingFile);
         try (BufferedInputStream roleMappingFIS = new BufferedInputStream(Files.newInputStream(oauthRoleMappingFile))) {
             Settings oauthMappingSettings = Settings.builder()
-                    .loadFromStream(oauthRoleMappingFile.getFileName().toString(),
-                            roleMappingFIS)
-                    .build();
+                                                    .loadFromStream(oauthRoleMappingFile.getFileName().toString(),
+                                                                    roleMappingFIS)
+                                                    .build();
 
             ImmutableSetMultimap.Builder<String, String> builder = ImmutableSetMultimap.builder();
             oauthMappingSettings.getAsStructuredMap()
-                    .forEach((role, userIds) -> builder.putAll(role, (List<String>) userIds));
+                                .forEach((role, userIds) -> builder.putAll(role, (List<String>) userIds));
             ImmutableSetMultimap<String, String> roleUserIds = builder.build();
 
             return roleUserIds.inverse();
@@ -124,9 +124,9 @@ public class RefreshableOAuthRoleMapper {
             public void onFileChanged(Path file) {
                 if (file.equals(oauthRoleMappingFile)) {
                     logger.info("OAuth role mappings file [{}] changed for realm [{}/{}]. updating mappings...",
-                            file.toAbsolutePath(),
-                            OAuthRealm.TYPE,
-                            config.name());
+                                file.toAbsolutePath(),
+                                OAuthRealm.TYPE,
+                                config.name());
                     onFileChanged.run();
                 }
             }
@@ -136,8 +136,8 @@ public class RefreshableOAuthRoleMapper {
             watcherService.add(watcher, frequency);
         } catch (IOException e) {
             throw new ElasticsearchException("failed to start file watcher for role mapping file [" +
-                    oauthRoleMappingFile.toAbsolutePath()
-                    + "]"
+                                             oauthRoleMappingFile.toAbsolutePath()
+                                             + "]"
             );
         }
     }
@@ -147,8 +147,8 @@ public class RefreshableOAuthRoleMapper {
             refreshableRoleMapping = parseRoleMappingFile(oauthRoleMappingFile);
         } catch (Throwable throwable) {
             logger.error("failed to parse role mappings file [{}]. skipping/removing all mappings... (Got : {}",
-                    oauthRoleMappingFile.toAbsolutePath(),
-                    throwable);
+                         oauthRoleMappingFile.toAbsolutePath(),
+                         throwable);
             refreshableRoleMapping = ImmutableSetMultimap.of();
         } finally {
             listener.run();
@@ -159,7 +159,7 @@ public class RefreshableOAuthRoleMapper {
         // xpack.security.authc.realms.oauth-integ.files.role_mapping
         String location = settings.get("files.role_mapping");
         return location == null ?
-                XPackPlugin.resolveConfigFile(env, "oauth_role_mapping.yml") : // config_dir/x-pack/oauth_role_mapping.yml
-                env.binFile().getParent().resolve(location);
+               XPackPlugin.resolveConfigFile(env, "oauth_role_mapping.yml") : // config_dir/x-pack/oauth_role_mapping.yml
+               env.binFile().getParent().resolve(location);
     }
 }

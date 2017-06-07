@@ -23,8 +23,8 @@ public abstract class DebugDetector {
         String jvmArguments = ManagementFactory.getRuntimeMXBean()
                                                .getInputArguments().toString();
         return jvmArguments.contains("-agentlib:jdwp")
-                || jvmArguments.contains("-Xrunjdwp")
-                || jvmArguments.contains("DEBUG=true");
+               || jvmArguments.contains("-Xrunjdwp")
+               || jvmArguments.contains("DEBUG=true");
     }
 
 }

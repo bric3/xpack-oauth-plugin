@@ -302,7 +302,7 @@ public class HttpClients {
         }
 
         static KeyStore readJavaKeyStore(Path javaKeyStorePath, String password) {
-            try(InputStream inputStream = new BufferedInputStream(Files.newInputStream(javaKeyStorePath))) {
+            try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(javaKeyStorePath))) {
                 KeyStore ks = KeyStore.getInstance("JKS");
                 ks.load(inputStream, password.toCharArray());
                 return ks;

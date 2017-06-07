@@ -15,12 +15,6 @@
  */
 package fr.arkey.elasticsearch.oauth.realm.tokeninfo;
 
-import com.google.common.collect.ImmutableSet;
-import fr.arkey.elasticsearch.oauth.realm.support.OAuthRealmExceptions;
-import org.apache.logging.log4j.Logger;
-import org.elasticsearch.common.xcontent.NamedXContentRegistry;
-import org.elasticsearch.xpack.security.authc.RealmConfig;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -30,6 +24,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import com.google.common.collect.ImmutableSet;
+import fr.arkey.elasticsearch.oauth.realm.support.OAuthRealmExceptions;
+import org.apache.logging.log4j.Logger;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.xpack.security.authc.RealmConfig;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.stream.Collectors.joining;

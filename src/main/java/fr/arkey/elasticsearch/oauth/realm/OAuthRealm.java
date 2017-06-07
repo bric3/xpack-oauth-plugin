@@ -34,8 +34,8 @@ public class OAuthRealm extends Realm {
 
 
     public OAuthRealm(RealmConfig config,
-               OAuthTokenRetriever tokenInfoRetriever,
-               RefreshableOAuthRoleMapper refreshableOAuthRoleMapper) {
+                      OAuthTokenRetriever tokenInfoRetriever,
+                      RefreshableOAuthRoleMapper refreshableOAuthRoleMapper) {
         super(TYPE, Objects.requireNonNull(config));
         this.oAuthTokenRetriever = tokenInfoRetriever;
         this.roleMapper = refreshableOAuthRoleMapper;

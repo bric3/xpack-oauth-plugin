@@ -40,7 +40,7 @@ public class OAuthRealmExceptions {
         ElasticsearchSecurityException e = new ElasticsearchSecurityException(
                 "Authentication failed",
                 RestStatus.UNAUTHORIZED
-                );
+        );
         e.addHeader("WWW-Authenticate", "Bearer realm=\"security\" charset=\"UTF-8\" delegateError=\"" + wwwAuthenticateError + "\"");
         return e;
     }
