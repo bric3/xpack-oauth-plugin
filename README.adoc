@@ -1,4 +1,6 @@
-= OAuth Shield Plugin for ElasticSearch 2.3.2
+= OAuth Shield Plugin for ElasticSearch 5.4
+
+Minimum gradle version : 3.3 as Elasticsearch 5.4 migrated to version 3.3, this project was created with gradle 3.5
 
 == Run it simple
 
@@ -7,10 +9,10 @@ Run ES with this plugin installed.
 
 [source,sh]
 ----
-mvn -Dskip.integ.tests=false -DskipTests pre-integration-test
+gradle integTestCluster\#start
 ----
 
-Default user is `admin-user` with password : `changeme` (see ant file `integration-tests.xml`).
+Default user is `admin_user` with password : `changeme` (see task `integTestCluster` in `build.gradle` file).
 To connect to the instance :
 
 [source,sh]
@@ -23,8 +25,8 @@ curl -v --user admin_user:changeme -XGET 'localhost:9400/_cluster/settings' | jq
 
 [source,yaml]
 ----
-shield:
-  audit.enabled: true
+xpack.security:
+  audit.enabled: true
   authc:
     realms:
       your-oauth-realm-name:
@@ -58,26 +60,26 @@ shield:
 
 == Debug the plugin
 
-These steps indicate how to install a debug agent on the ES instance started by ant.
-It uses the variable `tests.jvm.argline` defined in the parent _ant_ script
-(see `target/dev-tools/ant/integration-tests.xml` at line 169), this variable is only set
-in the `debug` profile declared in this `pom.xml`.
+These steps indicate how to install a debug agent on the ES instance started by gradle.
 
-
-1. In your IDE -- IntelliJ IDEA, let's be serous there -- create a remote debug
-   configuration in listen mode, on port 5005
-
-2. Start the debug configuration in your IDE
-
-3. Start Elasticsearch _ant_ task via maven (with the `debug` profile to set `tests.jvm.argline`) :
-
-       mvn -Pdebug -Dskip.integ.tests=false -DskipTests pre-integration-test
-
-4. Then debug, for example with breakpoint here
-    `OAuthRealmPlugin.onModule(org.elasticsearch.shield.authc.AuthenticationModule)`
+1. For example set breakpoint at the extension loading here
+    `OAuthRealmExtention.getRealms`
     that is only executed at the ES startup
 
-5. To kill ES just run :
+2. In your IDE -- _IntelliJ IDEA, let's be serous there_ -- create a remote debug
+   configuration in **attach** mode, on port 8000
+
+3. Start Elasticsearch via gradle with the property `debug` set to `true` :
+
+       gradle integTestCluster\#start -Pdebug=true
+
+4. Start the debug configuration in your IDE
+
+5. Have fun debugging
+
+6. To kill ES just run either :
+
+      gradle integTestCluster\#stop
 
       kill $(jps | grep Elasticsearch | cut -f 1 -d ' ')
 
@@ -86,17 +88,25 @@ in the `debug` profile declared in this `pom.xml`.
 
 [source,sh]
 ----
-mvn integration-test
+gradle integTest
 ----
 
 == Packages the plugin
 
 [source,sh]
 ----
-mvn package
+gradle buildZip
 ----
 
-The plugin zip file will be located in `target/release/plugin.zip`, e.g. `target/release/shield-oauth-realm-0.4-SNAPSHOT-shield_2.3.2.zip`
+The plugin zip file will be located in `build/distributions/plugin.zip`, e.g. `build/distributions/x-pack-oauth-realm-0.5-xpack_5.4.0.zip`
+
+== Run everything
+
+[source,sh]
+----
+gradle build
+----
+
 
 == TODO
 
@@ -110,9 +120,10 @@ The plugin zip file will be located in `target/release/plugin.zip`, e.g. `target
 - [x] truststore, company internal certificate authority => Not necessary
       (Removed usage of Shield's own `ClientSSLService` because it doesn't allow multiple additional trust manager)
 - [x] ES 2.3
-- [ ] Remove maven warning due to variable usage in project version
+- [x] Remove maven warning due to variable usage in project version, not necessary with gradle
+- [x] Migrate to Elasticsearch 5.4
 
 == Information
 
-This plugin is loosely based on the example provided https://github.com/elastic/shield-custom-realm-example/tree/2.3[here].
+This plugin is loosely based on the example provided https://github.com/elastic/shield-custom-realm-example/tree/5.4[here].
 
