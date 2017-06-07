@@ -84,6 +84,7 @@ def reconfigureDefaultTest(Project project, JavaPluginConvention pluginConventio
     Test testTask = project.tasks.create(properties);
     testTask.classpath = oldTestTask.classpath
     testTask.testClassesDir = oldTestTask.testClassesDir
+    testTask.exclude('**/*IT*')
 }
 
 //apply plugin: 'java'
