@@ -44,7 +44,7 @@ buildscript {
 }
 
 // Hack to restore the original test task from the java plugin, which has been removed by Elasticsearch build-tools
-def reconfigureDefaultTest(Project project, JavaPluginConvention pluginConvention) {
+def restoreJavaPluginTestTask(Project project, JavaPluginConvention pluginConvention) {
 //    project.tasks.each { t -> println t }
     def oldTestTask = project.tasks.findByPath('test')
 
@@ -85,6 +85,10 @@ def reconfigureDefaultTest(Project project, JavaPluginConvention pluginConventio
     testTask.classpath = oldTestTask.classpath
     testTask.testClassesDir = oldTestTask.testClassesDir
     testTask.exclude('**/*IT*')
+
+    Task checkTask = project.tasks.findByPath('check')
+    checkTask.dependsOn.remove(oldTestTask)
+    checkTask.dependsOn.add(testTask)
 }
 
 //apply plugin: 'java'
@@ -100,7 +104,7 @@ apply plugin: 'eclipse'
 apply plugin: 'com.github.hierynomus.license'
 
 //println project.convention.plugins.java
-reconfigureDefaultTest(project, project.convention.plugins.java)
+restoreJavaPluginTestTask(project, project.convention.plugins.java)
 //println project.tasks.findByPath('test').getClass()
 
 license {
