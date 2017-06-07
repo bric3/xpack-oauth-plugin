@@ -248,6 +248,8 @@ integTestCluster {
     transportPort integrationProperties['integ.es.transport.port']
 
 //    debug true // if true, adds -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000
+    // allow debugging when passing -Pdebug=true on the command line
+    debug findProperty("debug") == 'true'
 
     setting "xpack.monitoring.enabled", "false" // monitoring depends on painless which is not available to us
     setting "xpack.ml.enabled", "false"
