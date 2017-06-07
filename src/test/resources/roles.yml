@@ -14,17 +14,29 @@
 # limitations under the License.
 #
 
-user: #some comment
-  - 123 # some comment
-  # some comment
-  - 321
-  - 39e8732d-8de4-4eb0-bcfa-e7e429710306
-  - "39e8732d-8de4-4eb0-bcfa-e7e429710306"
-  - bob
-  - alice
+# All cluster rights
+# All operations on all indices
 admin:
-  - 789
-  - 321
-  - 39e8732d-8de4-4eb0-bcfa-e7e429710306
+  cluster:
+    - all
+  indices:
+    - names: '*'
+      privileges:
+        - all
+
+# Read-only operations on indices
+user:
+  indices:
+    - names: '*'
+      privileges:
+        - read
+
+# monitoring cluster privileges
+# All operations on all indices
 power_user:
-  - bob
+  cluster:
+    - monitor
+  indices:
+    - names: '*'
+      privileges:
+        - all

@@ -43,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Also see 'shield-oauth-plugin/integration-tests.xml'
  */
 public class OAuthPluginIT {
-    private String esUrl = "http://localhost:9400/";
+    private String esUrl = "http://localhost:" + TestResources.esHttpPort() + "/";
 
     @Rule
     public ESClient esClient = new ESClient(esUrl, "admin_user", "changeme")
@@ -54,7 +54,7 @@ public class OAuthPluginIT {
 
 
     @Test
-    public void authorize_using_valid_token() throws IOException {
+    public void should_authorize_using_valid_token() throws IOException {
         // Given
         String valid_access_token = RandomStringUtils.randomAlphanumeric(70);
         stubFor(get(urlEqualTo("/nidp/oauth/nam/tokeninfo"))
@@ -79,6 +79,37 @@ public class OAuthPluginIT {
 
             // Then
             assertThat(test.isSuccessful()).isTrue();
+        }
+    }
+
+    @Test
+    public void should_forbid_using_valid_token_but_role_forbidden() throws IOException {
+        // Given
+        String valid_access_token = RandomStringUtils.randomAlphanumeric(70);
+        stubFor(get(urlEqualTo("/nidp/oauth/nam/tokeninfo"))
+                        .withHeader("Accept", equalTo("application/json"))
+                        .withHeader("Authorization", equalTo("Bearer " + valid_access_token))
+                        .withHeader("Cache-Control", equalTo("no-cache"))
+                        .willReturn(okJson("{\"user_id\":\"alice\",\"expires_in\":" + 200 + ",\"scope\":[]}")
+                                            .withHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+                                            .withHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS")
+                                            .withHeader("Strict-Transport-Security", "max-age=31536000")
+                        )
+        );
+
+        // When
+        try (Response test = trustAllHttpClient()
+                .newCall(new Request.Builder()
+                                 .url(esUrl)
+                                 .addHeader("Authorization", "Bearer " + valid_access_token)
+                                 .get()
+                                 .build())
+                .execute()) {
+
+            // Then
+            assertThat(test.isSuccessful()).isFalse();
+            assertThat(test.body().string()).contains("\"type\":\"security_exception\"",
+                                                      "\"reason\":\"action [cluster:monitor/main] is unauthorized for user [alice]\"");
         }
     }
 
@@ -151,7 +182,8 @@ public class OAuthPluginIT {
 
             // Then
             assertThat(test.isSuccessful()).isFalse();
-            assertThat(test.headers().get("WWW-Authenticate")).isEqualTo("Bearer realm=\"shield\" charset=\"UTF-8\" delegateError=\"error=OAuth bearer token required. Token has expired\"");
+            assertThat(test.code()).isEqualTo(401);
+            assertThat(test.headers().get("WWW-Authenticate")).isEqualTo("Bearer realm=\"security\" charset=\"UTF-8\" delegateError=\"error=OAuth bearer token required. Token has expired\"");
         }
     }
 
@@ -170,7 +202,7 @@ public class OAuthPluginIT {
 
             // Then
             assertThat(test.isSuccessful()).isFalse();
-            assertThat(test.headers().get("WWW-Authenticate")).isEqualTo("Basic realm=\"shield\"");
+            assertThat(test.headers().get("WWW-Authenticate")).isEqualTo("Basic realm=\"security\" charset=\"UTF-8\"");
         }
     }
 

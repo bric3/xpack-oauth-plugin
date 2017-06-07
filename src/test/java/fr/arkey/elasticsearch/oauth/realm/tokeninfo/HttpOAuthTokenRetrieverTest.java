@@ -131,7 +131,7 @@ public class HttpOAuthTokenRetrieverTest {
                                                                        .has(headerContaining("WWW-Authenticate",
                                                                                              "delegateError=\"error=OAuth bearer token required. Token has expired\""))
                                                                        .has(headerContaining("WWW-Authenticate",
-                                                                                             "Bearer realm=\"shield\" charset=\"UTF-8\""));
+                                                                                             "Bearer realm=\"security\" charset=\"UTF-8\""));
     }
 
 
@@ -170,7 +170,7 @@ public class HttpOAuthTokenRetrieverTest {
 
         assertThatExceptionOfType(ElasticsearchSecurityException.class).isThrownBy(() -> tokenRetriever.getTokenInfo("an_expired_access_token"))
                                                                        .has(headerContaining("WWW-Authenticate",
-                                                                                             "Bearer realm=\"shield\" charset=\"UTF-8\""));
+                                                                                             "Bearer realm=\"security\" charset=\"UTF-8\""));
     }
 
 

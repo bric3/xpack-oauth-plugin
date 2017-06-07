@@ -38,6 +38,10 @@ public class TestResources {
         return Integer.parseInt(TEST_PROPERTIES.getProperty("idp.port"));
     }
 
+    public static int esHttpPort() {
+        return Integer.parseInt(TEST_PROPERTIES.getProperty("es.http.port"));
+    }
+
     public static Optional<Path> tryResource(String resource) {
         return Optional.ofNullable(TestResources.class.getClassLoader().getResource(resource))
                        .map(URL::getFile)

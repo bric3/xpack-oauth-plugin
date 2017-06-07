@@ -251,6 +251,9 @@ integTestCluster {
     // allow debugging when passing -Pdebug=true on the command line
     debug findProperty("debug") == 'true'
 
+    extraConfigFile 'x-pack/oauth_role_mapping.yml', file('build/resources/test/oauth_role_mapping.yml')
+    extraConfigFile 'x-pack/roles.yml', file('build/resources/test/roles.yml')
+
     setting "xpack.monitoring.enabled", "false" // monitoring depends on painless which is not available to us
     setting "xpack.ml.enabled", "false"
     // ml has named writeables and the check for cluster state consistency doesn't know about them
@@ -265,7 +268,7 @@ integTestCluster {
 
     setting "xpack.security.authc.realms.oauth-integ.order", "0"
     setting "xpack.security.authc.realms.oauth-integ.type", "oauth"
-    setting "xpack.security.authc.realms.oauth-integ.files.role_mapping", "config/shield/oauth_role_mapping.yml"
+    setting "xpack.security.authc.realms.oauth-integ.files.role_mapping", "config/x-pack/oauth_role_mapping.yml"
     setting "xpack.security.authc.realms.oauth-integ.token-info.url", "http://localhost:${integrationProperties['integ.idp.port']}/nidp/oauth/nam/tokeninfo"
     setting "xpack.security.authc.realms.oauth-integ.idp.connection-timeout-in-millis", "10000"
     setting "xpack.security.authc.realms.oauth-integ.idp.read-timeout-in-millis", "10000"
