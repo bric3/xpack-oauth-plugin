@@ -38,9 +38,14 @@ import static fr.arkey.elasticsearch.oauth.tools.HttpClients.trustAllHttpClient;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /*
- * Before, run : 'mvn -Dskip.integ.tests=false -DskipTests pre-integration-test'
+ * Before,
  *
- * Also see 'shield-oauth-plugin/integration-tests.xml'
+ * - start the cluster : 'gradle integTestCluster\#start'
+ * - or start in debug mode : 'gradle integTestCluster\#start -Pdebug=true'
+ *
+ * And stop it if necessary with : 'gradle integTestCluster\#stop'
+ *
+ * Also see task integTestCluster of 'build.gradle'
  */
 public class OAuthPluginIT {
     private String esUrl = "http://localhost:" + TestResources.esHttpPort() + "/";

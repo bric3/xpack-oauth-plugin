@@ -15,10 +15,9 @@
  */
 package fr.arkey.elasticsearch.oauth.realm;
 
+import java.util.Objects;
 import fr.arkey.elasticsearch.oauth.realm.support.OAuthRealmExceptions;
 import org.elasticsearch.xpack.security.authc.AuthenticationToken;
-
-import java.util.Objects;
 
 public class AccessToken implements AuthenticationToken {
     public static final String AUTHORIZATION_HEADER = "Authorization";
@@ -38,9 +37,6 @@ public class AccessToken implements AuthenticationToken {
 
     @Override
     public String principal() {
-        // known usage are for log :
-        // org.elasticsearch.shield.authc.DefaultAuthenticationFailureHandler.unsuccessfulAuthentication(org.elasticsearch.rest.RestRequest, org.elasticsearch.shield.authc.AuthenticationToken)
-        // org.elasticsearch.shield.audit.logfile.LoggingAuditTrail.authenticationFailed(org.elasticsearch.shield.authc.AuthenticationToken, org.elasticsearch.rest.RestRequest)
         return BEARER_AUTH_PREFIX + tokenString;
     }
 

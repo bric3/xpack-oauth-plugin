@@ -38,7 +38,7 @@ public class OAuthAuthenticationFailureHandler extends DefaultAuthenticationFail
     public ElasticsearchSecurityException failedAuthentication(RestRequest request, AuthenticationToken token, ThreadContext context) {
         ElasticsearchSecurityException e = super.failedAuthentication(request, token, context);
         if (token instanceof AccessToken) {
-            e.addHeader("WWW-Authenticate", "Bearer realm=\"shield\"");
+            e.addHeader("WWW-Authenticate", "Bearer realm=\"security\" charset=\"UTF-8\"");
         }
         return e;
     }

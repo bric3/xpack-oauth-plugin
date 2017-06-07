@@ -246,6 +246,8 @@ integTest.mustRunAfter(project.precommit, project.test)
 project.check.dependsOn(integTest)
 
 integTestCluster {
+    // Cluster is created in 'build/cluster/integTestCluster node0/'
+
     // See
     // - org.elasticsearch.gradle.test.ClusterConfiguration
     // - org.elasticsearch.gradle.test.ClusterFormationTasks
@@ -290,9 +292,9 @@ integTestCluster {
     setting "xpack.security.authc.realms.file.order", "1"
     setting "xpack.security.authc.realms.file.type", "file"
 
+    // see https://www.elastic.co/guide/en/x-pack/current/auditing.html
     setting "xpack.security.audit.enabled", "true"
-//    setting "logger.shield.audit.logfile", "DEBUG,access_log"
-
+    setting "xpack.security.audit.logfile.events.include", [ "access_denied", "access_granted", "anonymous_access_denied", "authentication_failed", "connection_denied", "tampered_request", "run_as_denied", "run_as_granted" ]
 
     setupCommand 'installXPackPlugin',
             'bin/elasticsearch-plugin', 'install', configurations.testRuntime.filter { File file -> file.getName().equals("x-pack-${versions.elasticsearch}.zip".toString()) }.getSingleFile().toURI().toString()

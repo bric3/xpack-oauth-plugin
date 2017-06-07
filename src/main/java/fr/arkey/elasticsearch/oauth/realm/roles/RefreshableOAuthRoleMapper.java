@@ -38,7 +38,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * A refreshable role user mapper service.
  * <p>
- * It will read the role mapping file defined in this setting : {@code shield.authc.realms.oauth.files.role_mapping}
+ * It will read the role mapping file defined in this setting : {@code xpack.security.authc.realms.oauth-integ.files.role_mapping}
  * and watch for any change on this file.
  * <p>
  * Any error in this file will have the same effect of an empty file.
@@ -51,7 +51,7 @@ public class RefreshableOAuthRoleMapper {
 
     /**
      * Build and configures a refreshable role user mapper service that will read
-     * the role mapping file defined in this setting : {@code shield.authc.realms.oauth.files.role_mapping}
+     * the role mapping file defined in this setting : {@code xpack.security.authc.realms.oauth-integ.files.role_mapping}
      * and watch for any change on this file.
      *
      * @param realmConfig         the configuration to create the realm with
@@ -156,10 +156,10 @@ public class RefreshableOAuthRoleMapper {
     }
 
     private static Path resolveRoleMappingFile(Settings settings, Environment env) {
-        // es.shield.authc.realms.oauth.files.role_mapping
+        // xpack.security.authc.realms.oauth-integ.files.role_mapping
         String location = settings.get("files.role_mapping");
         return location == null ?
-                XPackPlugin.resolveConfigFile(env, "oauth_role_mapping.yml") : // config_dir/shield/oauth_role_mapping.yml
+                XPackPlugin.resolveConfigFile(env, "oauth_role_mapping.yml") : // config_dir/x-pack/oauth_role_mapping.yml
                 env.binFile().getParent().resolve(location);
     }
 }
