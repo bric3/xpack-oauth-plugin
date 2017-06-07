@@ -40,6 +40,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static fr.arkey.elasticsearch.oauth.tools.DebugDetector.debugging;
@@ -58,6 +59,7 @@ public class HttpClients {
                 .connectTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
                 .readTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
                 .writeTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
+                .addInterceptor(httpLoggingInterceptor())
                 .build();
     }
 
@@ -67,6 +69,7 @@ public class HttpClients {
                 .connectTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
                 .readTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
                 .writeTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
+                .addInterceptor(httpLoggingInterceptor())
                 .build();
     }
 
@@ -83,6 +86,12 @@ public class HttpClients {
     }
 
 
+    private static HttpLoggingInterceptor httpLoggingInterceptor() {
+        return new HttpLoggingInterceptor(message -> System.out.println(message))
+                .setLevel(debugging() ?
+                          HttpLoggingInterceptor.Level.BODY :
+                          HttpLoggingInterceptor.Level.NONE);
+    }
 
 
 //    private static X509KeyManager jksKeyManager(Path path, char[] pazzwort) {
@@ -135,6 +144,7 @@ public class HttpClients {
                 .connectTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
                 .readTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
                 .writeTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
+                .addInterceptor(httpLoggingInterceptor())
                 .build();
     }
 
@@ -145,6 +155,7 @@ public class HttpClients {
                 .connectTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
                 .readTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
                 .writeTimeout(debugging() ? 0 : 10_000, MILLISECONDS)
+                .addInterceptor(httpLoggingInterceptor())
                 .build();
     }
 
