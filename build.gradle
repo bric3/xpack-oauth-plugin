@@ -218,7 +218,8 @@ processTestResources {
 
 task buildZip(type: Zip, dependsOn: [jar]) {
     from 'build/resources/main/x-pack-extension-descriptor.properties'
-//    from 'src/'  <= plugin-security
+    from 'build/resources/main/x-pack-extension-security.policy'
+//    from 'src/main/extension-metadata'
     from configurations.compile - configurations.provided
     from project.jar
     archiveName "${project.name}-${project.version}-xpack_${versions.elasticsearch}.zip"

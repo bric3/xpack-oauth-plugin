@@ -1,5 +1,6 @@
 grant {
   permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "accessClassInPackage.sun.security.ssl";
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
   permission java.security.SecurityPermission "getProperty.ssl.KeyManagerFactory.algorithm";
