@@ -30,7 +30,7 @@ shield:
       your-oauth-realm-name:
         order: 0
         type: oauth
-        files.role_mapping: config/shield/oauth_role_mapping.yml
+        files.role_mapping: config/x-pack/oauth_role_mapping.yml
         idp:
           connection-timeout-in-millis: 10000 # optional connection tiemout, defaults to 10s
           read-timeout-in-millis: 10000       # optional read response timeout, defaults to 10s

@@ -45,33 +45,13 @@ buildscript {
 
 // Hack to restore the original test task from the java plugin, which has been removed by Elasticsearch build-tools
 def restoreJavaPluginTestTask(Project project, JavaPluginConvention pluginConvention) {
-//    project.tasks.each { t -> println t }
     def oldTestTask = project.tasks.findByPath('test')
-
-//    print "old task : "
-//    println oldTestTask.getClass()
-//
     if (oldTestTask == null) {
         // no test task, ok, user will use testing task on their own
         return
     }
     tasks.remove(oldTestTask)
-
-//    project.tasks.withType(Test.class, new Action<Test>() {
-//        void execute(Test test) {
-//            test.getConventionMapping().map("testClassesDir", new Callable<Object>() {
-//                Object call() throws Exception {
-//                    return pluginConvention.sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).output.classesDir;
-//                }
-//            });
-//            test.getConventionMapping().map("classpath", new Callable<Object>() {
-//                Object call() throws Exception {
-//                    return pluginConvention.sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).runtimeClasspath;
-//                }
-//            });
-//        }
-//    })
-
+    
     Map properties = [
             name       : 'test',
             type       : Test.class,
@@ -79,7 +59,6 @@ def restoreJavaPluginTestTask(Project project, JavaPluginConvention pluginConven
             group      : JavaBasePlugin.VERIFICATION_GROUP,
             description: 'Runs regular unit tests'
     ]
-//    oldTestTask.classpath.each { c -> println c }
 
     Test testTask = project.tasks.create(properties);
     testTask.classpath = oldTestTask.classpath
@@ -91,21 +70,12 @@ def restoreJavaPluginTestTask(Project project, JavaPluginConvention pluginConven
     checkTask.dependsOn.add(testTask)
 }
 
-//apply plugin: 'java'
-//print "Java task : "
-//println project.tasks.findByPath('test').getClass()
-
 apply plugin: 'elasticsearch.build'
-//println project.tasks.findByPath('test').getClass()
-//print "ES testClasses task : "
-//println project.tasks.findByPath('testClasses').getClass()
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'com.github.hierynomus.license'
 
-//println project.convention.plugins.java
 restoreJavaPluginTestTask(project, project.convention.plugins.java)
-//println project.tasks.findByPath('test').getClass()
 
 license {
     header rootProject.file('LICENSE-header.txt')
@@ -126,7 +96,7 @@ repositories {
 configurations {
     // exclude securemock which is a repackaged mockito 1.x that conflict with this project's version of mockito
     testCompile.exclude group: 'org.elasticsearch', module: 'securemock'
-    // hacks to reenable transitive dependencies, otherwise you have to declare everything
+    // hacks to re-enable transitive dependencies for tests, otherwise you have to declare everything
     testCompile.dependencies.all { dep ->
         if (dep.group.startsWith('org.mockito') || dep.group.startsWith('com.github.tomakehurst')) {
             dep.transitive = true
@@ -160,9 +130,6 @@ dependencies {
     compile "com.squareup.okhttp3:okhttp:3.8.0"
     compile "com.squareup.okio:okio:1.13.0"
 
-//    runtime "com.squareup.okhttp3:okhttp:3.8.0"
-//    runtime "com.squareup.okio:okio:1.13.0"
-
     provided "org.apache.logging.log4j:log4j-api:2.8.2"
     provided "org.elasticsearch:elasticsearch:${versions.elasticsearch}"
     provided "org.elasticsearch.plugin:x-pack-api:${versions.elasticsearch}"
@@ -177,12 +144,6 @@ dependencies {
     testCompile "com.fasterxml.jackson.core:jackson-annotations:2.8.6"
     testCompile "org.apache.commons:commons-lang3:3.5"
     testCompile "com.github.tomakehurst:wiremock:2.6.0"
-
-//    testCompile "org.elasticsearch.test:framework:${version}"
-//    testCompile "org.elasticsearch.client:x-pack-transport:${version}"
-//    testCompile "org.apache.lucene:lucene-test-framework:${versions.lucene}"
-//    testCompile "org.apache.logging.log4j:log4j-api:${versions.log4j}"
-//    testCompile "org.apache.logging.log4j:log4j-core:${versions.log4j}"
 
     testRuntime "org.elasticsearch.plugin:x-pack:${versions.elasticsearch}@zip"
 }
@@ -200,8 +161,6 @@ Map generateSubstitutions() {
             'java.version' : targetCompatibility as String,
     ]
 }
-
-def idpServerPort = 9201
 
 // Disabling Elasticsearch imported tasks that I'd like to avoid because too cumbersome
 copyCheckstyleConf.enabled false
@@ -224,14 +183,12 @@ processResources {
 }
 
 processTestResources {
-//    MavenFilteringHack.filter(it, ['idp.server.port': idpServerPort])
     MavenFilteringHack.filter(it, integrationProperties)
 }
 
 task buildZip(type: Zip, dependsOn: [jar]) {
     from 'build/resources/main/x-pack-extension-descriptor.properties'
     from 'build/resources/main/x-pack-extension-security.policy'
-//    from 'src/main/extension-metadata'
     from configurations.compile - configurations.provided
     from project.jar
     archiveName "${project.name}-${project.version}-xpack_${versions.elasticsearch}.zip"
@@ -255,8 +212,8 @@ integTestCluster {
     httpPort integrationProperties['integ.es.http.port']
     transportPort integrationProperties['integ.es.transport.port']
 
-//    debug true // if true, adds -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000
     // allow debugging when passing -Pdebug=true on the command line
+    // if true, adds -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000
     debug findProperty("debug") == 'true'
 
     extraConfigFile 'x-pack/oauth_role_mapping.yml', file('build/resources/test/oauth_role_mapping.yml')
@@ -265,14 +222,6 @@ integTestCluster {
     setting "xpack.monitoring.enabled", "false" // monitoring depends on painless which is not available to us
     setting "xpack.ml.enabled", "false"
     // ml has named writeables and the check for cluster state consistency doesn't know about them
-//    setting "xpack.security.authc.realms.custom.order", "0"
-//    setting "xpack.security.authc.realms.custom.type", "custom"
-//    setting "xpack.security.authc.realms.custom.users.user1.password", "changeme"
-//    setting "xpack.security.authc.realms.custom.users.user1.roles", "superuser"
-//    setting "xpack.security.authc.realms.custom.users.user2.password", "changeme"
-//    setting "xpack.security.authc.realms.custom.users.user2.roles", "superuser"
-//    setting "xpack.security.authc.realms.custom.users.user3.password", "changeme"
-//    setting "xpack.security.authc.realms.custom.users.user3.roles", "superuser"
 
     setting "xpack.security.authc.realms.oauth-integ.order", "0"
     setting "xpack.security.authc.realms.oauth-integ.type", "oauth"
@@ -281,10 +230,6 @@ integTestCluster {
     setting "xpack.security.authc.realms.oauth-integ.idp.connection-timeout-in-millis", "10000"
     setting "xpack.security.authc.realms.oauth-integ.idp.read-timeout-in-millis", "10000"
     setting "xpack.security.authc.realms.oauth-integ.idp.write-timeout-in-millis", "10000"
-//    setting "xpack.security.authc.realms.oauth-integ.idp.proxy.host", "..."
-//    setting "xpack.security.authc.realms.oauth-integ.idp.proxy.port", "..."
-//    setting "xpack.security.authc.realms.oauth-integ.idp.proxy.username", "..."
-//    setting "xpack.security.authc.realms.oauth-integ.idp.proxy.password", "..."
     setting "xpack.security.authc.realms.oauth-integ.token-info.field.user", "user_id"
     setting "xpack.security.authc.realms.oauth-integ.token-info.field.scope", "scope"
     setting "xpack.security.authc.realms.oauth-integ.token-info.field.expires-in", "expires_in"
