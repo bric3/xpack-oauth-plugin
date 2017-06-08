@@ -1,0 +1,31 @@
+title OAuth Authentication Sequence
+
+note right of Application
+    Authentication Request
+    e.g. with client crendentials flow
+end note
+Application->+IDP: POST /token grant=client_crendentials&client_id…
+note right of IDP: checks credentials
+IDP-->-Application: Access token, etc.
+
+
+Application->+ELK: Request to REST API with header 'Authorization: Bearer <access token>'
+note right of ELK
+    Extract access token from 'Authorization' header
+    and get token info.
+end note
+ELK->+IDP: Check access token on tokeninfo
+IDP-->-ELK: Token info payload
+note right of ELK
+    Checks if value in 'user_id' (the
+    'client_id' in this case), has been configured
+    (in 'x-pack/oauth-role-mapping.yml') to the right
+    ELK roles for this REST API.
+end note
+alt authorized
+    ELK-->Application: 2xx response
+else unauthorized
+    ELK-->-Application: 401 / 403 response
+end
+
+# created on https://www.websequencediagrams.com/

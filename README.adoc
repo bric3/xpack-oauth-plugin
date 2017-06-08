@@ -107,6 +107,13 @@ The plugin zip file will be located in `build/distributions/plugin.zip`, e.g. `b
 gradle build
 ----
 
+== What does it do ?
+
+What the extension does in a nutshell :
+
+image::oauth-authentication.png[OAuth Authentication]
+
+Also check the OAuth RFC : https://tools.ietf.org/html/rfc6750
 
 == TODO
 
