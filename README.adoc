@@ -9,7 +9,7 @@ Run ES with this plugin installed.
 
 [source,sh]
 ----
-gradle integTestCluster\#start
+./gradle integTestCluster\#start
 ----
 
 Default user is `admin_user` with password : `changeme` (see task `integTestCluster` in `build.gradle` file).
@@ -71,7 +71,7 @@ These steps indicate how to install a debug agent on the ES instance started by 
 
 3. Start Elasticsearch via gradle with the property `debug` set to `true` :
 
-       gradle integTestCluster\#start -Pdebug=true
+       ./gradlew integTestCluster\#start -Pdebug=true
 
 4. Start the debug configuration in your IDE
 
@@ -79,7 +79,7 @@ These steps indicate how to install a debug agent on the ES instance started by 
 
 6. To kill ES just run either :
 
-      gradle integTestCluster\#stop
+      ./gradlew integTestCluster\#stop
 
       kill $(jps | grep Elasticsearch | cut -f 1 -d ' ')
 
@@ -88,14 +88,14 @@ These steps indicate how to install a debug agent on the ES instance started by 
 
 [source,sh]
 ----
-gradle integTest
+./gradlew integTest
 ----
 
 == Packages the plugin
 
 [source,sh]
 ----
-gradle buildZip
+./gradlew buildZip
 ----
 
 The plugin zip file will be located in `build/distributions/plugin.zip`, e.g. `build/distributions/x-pack-oauth-realm-0.5-xpack_5.4.0.zip`
@@ -104,7 +104,7 @@ The plugin zip file will be located in `build/distributions/plugin.zip`, e.g. `b
 
 [source,sh]
 ----
-gradle build
+./gradlew build
 ----
 
 == What does it do ?
